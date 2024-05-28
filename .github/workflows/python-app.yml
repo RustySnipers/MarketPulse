@@ -61,7 +61,7 @@ jobs:
 
     - name: Test Executable
       run: |
-        sudo xvfb-run --auto-servernum ./dist/main  # On Windows, use `dist\main.exe`
+        sudo xvfb-run --auto-servernum timeout 5m ./dist/main  # On Windows, use `dist\main.exe`
 
     - name: Upload Release Asset
       uses: actions/upload-artifact@v2
