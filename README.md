@@ -123,10 +123,3 @@ We welcome contributions! To contribute, follow these steps:
 
 Distributed under the MIT License. See \`LICENSE\` for more information.
 """
-
-# Save the content to README.md
-file_path = '/mnt/data/README.md'
-with open(file_path, 'w') as file:
-    file.write(readme_content)
-
-file_path
