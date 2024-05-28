@@ -55,6 +55,10 @@ jobs:
         source venv/bin/activate
         pyinstaller --onefile main.py
 
+    - name: Install xvfb
+      run: |
+        sudo apt-get install -y xvfb
+
     - name: Test Executable
       run: |
-        ./dist/main  # On Windows, use `dist\main.exe`
+        sudo xvfb-run --auto-servernum ./dist/main  # On Windows, use `dist\main.exe`
