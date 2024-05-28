@@ -1,7 +1,8 @@
-from ib_insync import *
+from ib_insync import IB, Stock
 import pandas as pd
 import joblib
 
+# Initialize IB instance
 ib = IB()
 
 def start_trading_bot(ticker):
