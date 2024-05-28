@@ -7,3 +7,4 @@ TA-Lib
 backtrader
 matplotlib
 joblib
+ta
