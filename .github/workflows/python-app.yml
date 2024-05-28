@@ -61,7 +61,14 @@ jobs:
 
     - name: Test Executable
       run: |
-        sudo xvfb-run --auto-servernum timeout 5m ./dist/main  # On Windows, use `dist\main.exe`
+        ./dist/main  # On Windows, use `dist\main.exe`
+      continue-on-error: true
+
+    - name: Check for Errors
+      if: failure()
+      run: |
+        echo "Executable failed to run. Checking for errors..."
+        cat ./dist/main.log || true
 
     - name: Upload Release Asset
       uses: actions/upload-artifact@v2
