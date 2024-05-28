@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-import pandas as pd
 import threading
-import time
-from backtesting import perform_backtest, generate_report
+import pandas as pd
+from backtesting import run_backtest
 from trading import start_trading_bot, stop_trading_bot
+import time
 
 class TradingBotApp:
     def __init__(self, root):
@@ -12,7 +12,6 @@ class TradingBotApp:
         self.root.title("Trading Bot")
         self.create_widgets()
         self.data = None
-        self.model = None
         self.trading_active = False
 
     def create_widgets(self):
@@ -59,12 +58,8 @@ class TradingBotApp:
 
         def backtest():
             self.progress_label.config(text="Backtesting in progress...")
-            start_time = time.time()
-            # Perform backtesting
-            results = perform_backtest(self.data)
-            elapsed_time = time.time() - start_time
-            self.progress_label.config(text=f"Backtesting completed in {elapsed_time:.2f} seconds")
-            generate_report(results)
+            run_backtest()
+            self.progress_label.config(text="Backtesting completed. Report generated in reports/backtesting_report.txt")
             self.report_label.config(text="Backtesting completed. Report generated in reports/backtesting_report.txt")
         
         threading.Thread(target=backtest).start()
