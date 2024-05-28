@@ -29,25 +29,23 @@ jobs:
         sudo apt-get install -y gfortran
         sudo apt-get install -y libatlas-base-dev
 
-    - name: Install precompiled TA-Lib
-      run: |
-        wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
-        tar -xzf ta-lib-0.4.0-src.tar.gz
-        cd ta-lib
-        ./configure --prefix=/usr
-        make
-        sudo make install
-        cd ..
-        pip install ta-lib
-
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run tests
+    - name: Install PyInstaller
       run: |
         source venv/bin/activate
-        python -m unittest discover
+        pip install pyinstaller
+
+    - name: Build Executable with PyInstaller
+      run: |
+        source venv/bin/activate
+        pyinstaller --onefile main.py
+
+    - name: Test Executable
+      run: |
+        ./dist/main  # On Windows, use `dist\main.exe`

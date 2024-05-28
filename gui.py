@@ -8,7 +8,6 @@ import time
 
 class TradingBotApp:
     def __init__(self, root):
-        print("Initializing GUI...")
         self.root = root
         self.root.title("Trading Bot")
         self.create_widgets()
@@ -16,7 +15,6 @@ class TradingBotApp:
         self.trading_active = False
 
     def create_widgets(self):
-        print("Creating widgets...")
         # Upload Data Section
         self.upload_label = tk.Label(self.root, text="Upload Data for Backtesting:")
         self.upload_label.pack()
