@@ -1,0 +1,26 @@
+import pandas as pd
+import numpy as np
+from ta import add_all_ta_features
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+import joblib
+
+# Load and preprocess historical data
+data = pd.read_csv('data/historical_data.csv', parse_dates=True, index_col='date')
+data = add_all_ta_features(data, open="open", high="high", low="low", close="close", volume="volume")
+data['hour'] = data.index.hour
+
+# Feature selection
+features = ['trend_macd', 'momentum_rsi', 'volatility_bbm', 'volatility_bbh', 'volatility_bbl', 'hour']
+data['target'] = np.where(data['close'].shift(-1) > data['close'], 1, 0)
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(data[features], data['target'], test_size=0.2, random_state=42)
+
+# Train a RandomForest model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Save the model to model.pkl
+joblib.dump(model, 'models/model.pkl')
+print("Model saved to models/model.pkl")

@@ -1,0 +1,10 @@
+ib_insync
+pandas
+numpy
+scikit-learn
+tensorflow
+TA-Lib
+backtrader
+tkinter
+matplotlib
+joblib
