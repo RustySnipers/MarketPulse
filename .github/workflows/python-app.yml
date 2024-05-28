@@ -28,12 +28,21 @@ jobs:
         sudo apt-get install -y python3-dev
         sudo apt-get install -y gfortran
         sudo apt-get install -y libatlas-base-dev
+        sudo apt-get install -y wget
+        wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+        tar -xzf ta-lib-0.4.0-src.tar.gz
+        cd ta-lib
+        ./configure --prefix=/usr
+        make
+        sudo make install
+        cd ..
 
     - name: Install Python dependencies
       run: |
         python -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
+        pip install ta-lib
         pip install -r requirements.txt
 
     - name: Install PyInstaller
