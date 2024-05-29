@@ -1,7 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import messagebox
 import threading
-import pandas as pd
 from backtesting import run_backtest
 from trading import start_trading_bot, stop_trading_bot
 import time
@@ -11,16 +10,9 @@ class TradingBotApp:
         self.root = root
         self.root.title("Trading Bot")
         self.create_widgets()
-        self.data = None
         self.trading_active = False
 
     def create_widgets(self):
-        # Upload Data Section
-        self.upload_label = tk.Label(self.root, text="Upload Data for Backtesting:")
-        self.upload_label.pack()
-        self.upload_button = tk.Button(self.root, text="Upload CSV", command=self.upload_data)
-        self.upload_button.pack()
-        
         # Backtesting Section
         self.backtest_button = tk.Button(self.root, text="Perform Backtesting", command=self.perform_backtest)
         self.backtest_button.pack()
@@ -43,19 +35,7 @@ class TradingBotApp:
         self.report_label = tk.Label(self.root, text="")
         self.report_label.pack()
     
-    def upload_data(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            self.data = pd.read_csv(file_path, parse_dates=True, index_col='date')
-            messagebox.showinfo("Success", "Data uploaded successfully")
-        else:
-            messagebox.showerror("Error", "Failed to upload data")
-
     def perform_backtest(self):
-        if self.data is None:
-            messagebox.showerror("Error", "Please upload data first")
-            return
-
         def backtest():
             self.progress_label.config(text="Backtesting in progress...")
             run_backtest()
@@ -83,3 +63,8 @@ class TradingBotApp:
         self.trading_active = False
         stop_trading_bot()
         messagebox.showinfo("Info", "Trading stopped")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = TradingBotApp(root)
+    root.mainloop()

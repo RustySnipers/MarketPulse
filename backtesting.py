@@ -9,14 +9,15 @@ import backtrader as bt
 
 # Load and preprocess historical data
 def load_data(file_path):
-    data = pd.read_csv(file_path, parse_dates=True, index_col='date')
-    data = add_all_ta_features(data, open="open", high="high", low="low", close="close", volume="volume")
+    data = pd.read_csv(file_path, parse_dates=['Date'], index_col='Date')
+    print("Loaded data columns:", data.columns)  # Debugging line
+    data = add_all_ta_features(data, open="Open", high="High", low="Low", close="Close", volume="Volume")
     data['hour'] = data.index.hour
     return data
 
 def perform_backtest(data):
     features = ['trend_macd', 'momentum_rsi', 'volatility_bbm', 'volatility_bbh', 'volatility_bbl', 'hour']
-    data['target'] = np.where(data['close'].shift(-1) > data['close'], 1, 0)
+    data['target'] = np.where(data['Close'].shift(-1) > data['Close'], 1, 0)
 
     X_train, X_test, y_train, y_test = train_test_split(data[features], data['target'], test_size=0.2, random_state=42)
     
@@ -54,7 +55,8 @@ class MLStrategy(bt.Strategy):
             self.sell()
 
 def run_backtest():
-    data = load_data('data/SPY2324.csv')
+    file_path = 'data/SPY2324.csv'
+    data = load_data(file_path)
     results = perform_backtest(data)
     generate_report(results)
     print("Backtesting completed. Report generated in reports/backtesting_report.txt")
