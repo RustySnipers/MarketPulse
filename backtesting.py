@@ -9,9 +9,15 @@ import backtrader as bt
 
 # Load and preprocess historical data
 def load_data(file_path):
-    data = pd.read_csv(file_path, parse_dates=['Date'], index_col='Date')
-    print("Loaded data columns:", data.columns)  # Debugging line
+    data = pd.read_csv(file_path, parse_dates=True, index_col='date')
     data = add_all_ta_features(data, open="Open", high="High", low="Low", close="Close", volume="Volume")
+
+    # Convert 'Volume' column to numeric, coercing errors to NaN
+    data['Volume'] = pd.to_numeric(data['Volume'].str.replace(',', ''), errors='coerce')
+
+    # Fill NaN values with zero
+    data['Volume'].fillna(0, inplace=True)
+
     data['hour'] = data.index.hour
     return data
 
