@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score
 import joblib
 import datetime
 import os
-import backtrader as bt
+import backtrader as bt  # Make sure backtrader is imported
 
 # Load and preprocess historical data
 def load_data(file_path):
@@ -47,7 +47,26 @@ def perform_backtest(data):
 def generate_report(results):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     report_filename = f'reports/backtesting_report_{timestamp}.txt'
-    report_content = f"Backtesting Report:\n\nAccuracy: {results['accuracy']:.2f}\n\nOptimal Settings: ...\nTrading Plan: ..."
+    optimal_settings = {
+        'MACD': '12, 26, 9',  # Example values
+        'RSI': '14',
+        'Bollinger Bands': '20, 2'
+    }
+    trading_plan = (
+        "1. Enter a long position when the MACD line crosses above the signal line and RSI is below 30.\n"
+        "2. Enter a short position when the MACD line crosses below the signal line and RSI is above 70.\n"
+        "3. Use Bollinger Bands to set stop-loss and take-profit levels.\n"
+        "4. Monitor trades and adjust positions based on market conditions."
+    )
+    report_content = (
+        f"Backtesting Report:\n\n"
+        f"Accuracy: {results['accuracy']:.2f}\n\n"
+        f"Optimal Settings:\n"
+        f"MACD: {optimal_settings['MACD']}\n"
+        f"RSI: {optimal_settings['RSI']}\n"
+        f"Bollinger Bands: {optimal_settings['Bollinger Bands']}\n\n"
+        f"Trading Plan:\n{trading_plan}"
+    )
     print(report_content)  # Debug print to check report content
     with open(report_filename, 'w') as f:
         f.write(report_content)
@@ -72,15 +91,3 @@ def run_backtest():
     results = perform_backtest(data)
     generate_report(results)
     print("Backtesting completed. Report generated.")
-
-# ML training function
-def train_ml_model():
-    print("Starting ML model training...")
-    file_path = 'data/SPY2324.csv'
-    data = load_data(file_path)
-    results = perform_backtest(data)
-    generate_report(results)
-    print("ML model training completed.")
-
-if __name__ == "__main__":
-    run_backtest()

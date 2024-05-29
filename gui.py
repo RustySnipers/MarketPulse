@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 import threading
-from backtesting import run_backtest, train_ml_model
+from backtesting import run_backtest
+from ml_training import run_ml_training
 from trading import start_trading_bot, stop_trading_bot
 import time
 
@@ -44,41 +45,4 @@ class TradingBotApp:
         def backtest():
             self.progress_label.config(text="Backtesting in progress...")
             run_backtest()
-            self.progress_label.config(text="Backtesting completed. Report generated in reports folder")
-            self.report_label.config(text="Backtesting completed. Report generated in reports folder")
-        
-        threading.Thread(target=backtest).start()
-
-    def start_ml_training(self):
-        def training():
-            self.progress_label.config(text="ML Training in progress...")
-            train_ml_model()
-            self.progress_label.config(text="ML Training completed. Report generated in reports folder")
-            self.report_label.config(text="ML Training completed. Report generated in reports folder")
-        
-        threading.Thread(target=training).start()
-
-    def start_trading(self):
-        ticker = self.ticker_entry.get()
-        if not ticker:
-            messagebox.showerror("Error", "Please enter a ticker")
-            return
-
-        def trading():
-            start_trading_bot(ticker)
-            while self.trading_active:
-                time.sleep(1)
-        
-        self.trading_active = True
-        threading.Thread(target=trading).start()
-        messagebox.showinfo("Info", "Trading started")
-
-    def stop_trading(self):
-        self.trading_active = False
-        stop_trading_bot()
-        messagebox.showinfo("Info", "Trading stopped")
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = TradingBotApp(root)
-    root.mainloop()
+            self
