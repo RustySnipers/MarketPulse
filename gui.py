@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import threading
-from backtesting import run_backtest
+from backtesting import run_backtest, train_ml_model
 from trading import start_trading_bot, stop_trading_bot
 import time
 
@@ -10,6 +10,7 @@ class TradingBotApp:
         self.root = root
         self.root.title("Trading Bot")
         self.create_widgets()
+        self.data = None
         self.trading_active = False
 
     def create_widgets(self):
@@ -18,7 +19,11 @@ class TradingBotApp:
         self.backtest_button.pack()
         self.progress_label = tk.Label(self.root, text="")
         self.progress_label.pack()
-        
+
+        # ML Training Section
+        self.ml_training_button = tk.Button(self.root, text="Start ML Training", command=self.start_ml_training)
+        self.ml_training_button.pack()
+
         # Ticker Input Section
         self.ticker_label = tk.Label(self.root, text="Enter Ticker:")
         self.ticker_label.pack()
@@ -39,10 +44,19 @@ class TradingBotApp:
         def backtest():
             self.progress_label.config(text="Backtesting in progress...")
             run_backtest()
-            self.progress_label.config(text="Backtesting completed. Report generated in reports/backtesting_report.txt")
-            self.report_label.config(text="Backtesting completed. Report generated in reports/backtesting_report.txt")
+            self.progress_label.config(text="Backtesting completed. Report generated in reports folder")
+            self.report_label.config(text="Backtesting completed. Report generated in reports folder")
         
         threading.Thread(target=backtest).start()
+
+    def start_ml_training(self):
+        def training():
+            self.progress_label.config(text="ML Training in progress...")
+            train_ml_model()
+            self.progress_label.config(text="ML Training completed. Report generated in reports folder")
+            self.report_label.config(text="ML Training completed. Report generated in reports folder")
+        
+        threading.Thread(target=training).start()
 
     def start_trading(self):
         ticker = self.ticker_entry.get()

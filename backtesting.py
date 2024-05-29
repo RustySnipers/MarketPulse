@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
+import datetime
+import os
 import backtrader as bt
 
 # Load and preprocess historical data
@@ -39,12 +41,17 @@ def perform_backtest(data):
         'features': features
     }
     
+    print(f"Model Accuracy: {accuracy:.2f}")  # Debug print to check accuracy
     return results
 
 def generate_report(results):
-    report = f"Backtesting Report:\n\nAccuracy: {results['accuracy']:.2f}\n\nOptimal Settings: ...\nTrading Plan: ..."
-    with open('reports/backtesting_report.txt', 'w') as f:
-        f.write(report)
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    report_filename = f'reports/backtesting_report_{timestamp}.txt'
+    report_content = f"Backtesting Report:\n\nAccuracy: {results['accuracy']:.2f}\n\nOptimal Settings: ...\nTrading Plan: ..."
+    print(report_content)  # Debug print to check report content
+    with open(report_filename, 'w') as f:
+        f.write(report_content)
+    print(f"Backtesting completed. Report generated in {report_filename}")
 
 class MLStrategy(bt.Strategy):
     def __init__(self, model, features):
@@ -64,4 +71,16 @@ def run_backtest():
     data = load_data(file_path)
     results = perform_backtest(data)
     generate_report(results)
-    print("Backtesting completed. Report generated in reports/backtesting_report.txt")
+    print("Backtesting completed. Report generated.")
+
+# ML training function
+def train_ml_model():
+    print("Starting ML model training...")
+    file_path = 'data/SPY2324.csv'
+    data = load_data(file_path)
+    results = perform_backtest(data)
+    generate_report(results)
+    print("ML model training completed.")
+
+if __name__ == "__main__":
+    run_backtest()
