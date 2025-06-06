@@ -1,6 +1,3 @@
-# Create a README.md file with the given content
-
-readme_content = """
 # Market Pulse
 
 Market Pulse is a Python-based application designed for tracking day trades, particularly options. This application offers features like user authentication, trade input, an analytics dashboard, and printable reports.
@@ -122,4 +119,3 @@ We welcome contributions! To contribute, follow these steps:
 ## License
 
 Distributed under the MIT License. See \`LICENSE\` for more information.
-"""
