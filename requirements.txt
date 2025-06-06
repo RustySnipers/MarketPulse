@@ -11,3 +11,4 @@ ta
 webull
 tkcalendar
 requests
+pytest
