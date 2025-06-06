@@ -7,6 +7,8 @@ from sklearn.metrics import accuracy_score
 import joblib
 import datetime
 
+from discord_webhook import send_discord_message
+
 def load_data(file_path):
     data = pd.read_csv(file_path)
     if 'Date' in data.columns:
@@ -64,7 +66,9 @@ def generate_ml_report(results):
     )
     with open(report_filename, 'w') as f:
         f.write(report_content)
-    print(f"ML Training completed. Report generated in {report_filename}")
+    completion_msg = f"ML Training completed. Report generated in {report_filename}"
+    print(completion_msg)
+    send_discord_message(completion_msg)
 
 def run_ml_training():
     file_path = 'data/SPY2324.csv'

@@ -16,6 +16,7 @@ Market Pulse is a Python-based application designed for tracking day trades, par
   - [Usage](#usage)
     - [Running the Application](#running-the-application)
     - [Building the Executable](#building-the-executable)
+  - [Discord Notifications](#discord-notifications)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -108,6 +109,13 @@ To build an executable using PyInstaller, follow these steps:
 4. **Locate the Executable**
 
     The executable will be located in the \`dist\` directory.
+
+## Discord Notifications
+
+Set the `DISCORD_WEBHOOK_URL` environment variable to enable automatic
+notifications. The application will post messages to your Discord channel
+when backtesting or ML training reports are generated and when trading starts
+or stops.
 
 ## Contributing
 

@@ -9,6 +9,8 @@ import datetime
 import os
 import backtrader as bt  # Make sure backtrader is imported
 
+from discord_webhook import send_discord_message
+
 # Load and preprocess historical data
 def load_data(file_path):
     data = pd.read_csv(file_path)
@@ -70,7 +72,9 @@ def generate_report(results):
     print(report_content)  # Debug print to check report content
     with open(report_filename, 'w') as f:
         f.write(report_content)
-    print(f"Backtesting completed. Report generated in {report_filename}")
+    completion_msg = f"Backtesting completed. Report generated in {report_filename}"
+    print(completion_msg)
+    send_discord_message(completion_msg)
 
 class MLStrategy(bt.Strategy):
     def __init__(self, model, features):
