@@ -10,3 +10,4 @@ joblib
 ta
 webull
 tkcalendar
+requests

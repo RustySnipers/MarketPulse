@@ -86,6 +86,13 @@ python main.py
 
 When the GUI is running you can enter a comma-separated list of tickers to set a custom watchlist. Use the **Load Webull Portfolio** button to import your holdings from your Webull account. Credentials are requested at runtime and are never saved.
 
+### Discord Notifications
+
+Set the `DISCORD_WEBHOOK_URL` environment variable to send trading events and
+report summaries to a Discord channel. The application will post messages when
+trading starts or stops, watchlists change, portfolios are loaded, and when
+backtesting or ML training completes.
+
 ### Building the Executable
 
 To build an executable using PyInstaller, follow these steps:
