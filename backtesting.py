@@ -4,6 +4,7 @@ from ta import add_all_ta_features
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from discord_webhook import send_discord_message
 import joblib
 import datetime
 import os
@@ -92,3 +93,5 @@ def run_backtest():
     results = perform_backtest(data)
     generate_report(results)
     print("Backtesting completed. Report generated.")
+    send_discord_message(
+        f"Backtesting completed with accuracy {results['accuracy']:.2f}")

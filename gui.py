@@ -7,6 +7,7 @@ from trading import start_trading_bot, stop_trading_bot
 from calendar_app import CalendarApp, load_example_events
 from watchlist import load_watchlist, save_watchlist
 from webull_integration import login_webull, fetch_portfolio
+from discord_webhook import send_discord_message
 import time
 
 class TradingBotApp:
@@ -95,11 +96,13 @@ class TradingBotApp:
         self.trading_active = True
         threading.Thread(target=trading).start()
         messagebox.showinfo("Info", "Trading started")
+        send_discord_message(f"Trading started for {ticker}")
 
     def stop_trading(self):
         self.trading_active = False
         stop_trading_bot()
         messagebox.showinfo("Info", "Trading stopped")
+        send_discord_message("Trading stopped")
 
     def open_calendar(self):
         top = tk.Toplevel(self.root)
@@ -115,6 +118,7 @@ class TradingBotApp:
         self.watchlist = tickers
         save_watchlist(self.watchlist)
         messagebox.showinfo("Watchlist", "Watchlist updated")
+        send_discord_message(f"Watchlist updated: {', '.join(self.watchlist)}")
 
     def load_webull_portfolio(self):
         username = simpledialog.askstring("Webull Login", "Username or Email:")
@@ -135,8 +139,10 @@ class TradingBotApp:
                 qty = p.get('position', p.get('positionStr', ''))
                 self.portfolio_box.insert(tk.END, f"{symbol}: {qty}")
             messagebox.showinfo("Portfolio", "Portfolio loaded from Webull")
+            send_discord_message(f"Loaded Webull portfolio with {len(positions)} positions")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load portfolio: {e}")
+            send_discord_message(f"Failed to load Webull portfolio: {e}")
 
 if __name__ == "__main__":
     root = tk.Tk()

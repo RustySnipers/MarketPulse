@@ -4,6 +4,7 @@ from ta import add_all_ta_features
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from discord_webhook import send_discord_message
 import joblib
 import datetime
 import os
@@ -74,3 +75,5 @@ def run_ml_training():
     results = perform_ml_training(data)
     generate_ml_report(results)
     print("ML Training completed. Report generated.")
+    send_discord_message(
+        f"ML training completed with accuracy {results['accuracy']:.2f}")
