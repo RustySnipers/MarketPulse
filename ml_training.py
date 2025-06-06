@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
 import datetime
+import os
 
 def load_data(file_path):
     data = pd.read_csv(file_path)
@@ -62,6 +63,7 @@ def generate_ml_report(results):
         f"Bollinger Bands: {optimal_settings['Bollinger Bands']}\n\n"
         f"Trading Plan:\n{trading_plan}"
     )
+    os.makedirs('reports', exist_ok=True)
     with open(report_filename, 'w') as f:
         f.write(report_content)
     print(f"ML Training completed. Report generated in {report_filename}")
