@@ -46,7 +46,9 @@ def perform_backtest(data):
 
 def generate_report(results):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_filename = f'reports/backtesting_report_{timestamp}.txt'
+    report_dir = 'reports'
+    os.makedirs(report_dir, exist_ok=True)
+    report_filename = os.path.join(report_dir, f'backtesting_report_{timestamp}.txt')
     optimal_settings = {
         'MACD': '12, 26, 9',  # Example values
         'RSI': '14',

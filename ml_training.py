@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
 import datetime
+import os
 
 def load_data(file_path):
     data = pd.read_csv(file_path)
@@ -41,7 +42,9 @@ def perform_ml_training(data):
 
 def generate_ml_report(results):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_filename = f'reports/ml_training_report_{timestamp}.txt'
+    report_dir = 'reports'
+    os.makedirs(report_dir, exist_ok=True)
+    report_filename = os.path.join(report_dir, f'ml_training_report_{timestamp}.txt')
     optimal_settings = {
         'MACD': '12, 26, 9',  # Example values
         'RSI': '14',
