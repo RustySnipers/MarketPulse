@@ -8,3 +8,4 @@ backtrader
 matplotlib
 joblib
 ta
+tkcalendar
