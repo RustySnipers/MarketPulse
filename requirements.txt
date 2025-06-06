@@ -8,3 +8,5 @@ backtrader
 matplotlib
 joblib
 ta
+
+pytest
