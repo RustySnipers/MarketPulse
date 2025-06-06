@@ -5,6 +5,9 @@ from backtesting import run_backtest
 from ml_training import run_ml_training
 from trading import start_trading_bot, stop_trading_bot
 import time
+import json
+import os
+from webull_integration import WebullIntegration
 
 class TradingBotApp:
     def __init__(self, root):
@@ -13,6 +16,7 @@ class TradingBotApp:
         self.create_widgets()
         self.data = None
         self.trading_active = False
+        self.webull = WebullIntegration()
 
     def create_widgets(self):
         # Backtesting Section
@@ -30,6 +34,15 @@ class TradingBotApp:
         self.ticker_label.pack()
         self.ticker_entry = tk.Entry(self.root)
         self.ticker_entry.pack()
+
+        self.add_watchlist_button = tk.Button(self.root, text="Add to Watchlist", command=self.add_to_watchlist)
+        self.add_watchlist_button.pack()
+
+        self.view_watchlist_button = tk.Button(self.root, text="View Watchlist", command=self.show_watchlist)
+        self.view_watchlist_button.pack()
+
+        self.import_portfolio_button = tk.Button(self.root, text="Import Webull Portfolio", command=self.import_webull_portfolio)
+        self.import_portfolio_button.pack()
         
         # Control Bot Section
         self.start_button = tk.Button(self.root, text="Start Trading", command=self.start_trading)
@@ -78,6 +91,54 @@ class TradingBotApp:
         self.trading_active = False
         stop_trading_bot()
         messagebox.showinfo("Info", "Trading stopped")
+
+    def watchlist_file(self):
+        return os.path.join(os.getcwd(), "watchlist.json")
+
+    def load_watchlist(self):
+        path = self.watchlist_file()
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                return json.load(f)
+        return []
+
+    def save_watchlist(self, tickers):
+        path = self.watchlist_file()
+        with open(path, "w") as f:
+            json.dump(tickers, f, indent=2)
+
+    def add_to_watchlist(self):
+        ticker = self.ticker_entry.get()
+        if not ticker:
+            messagebox.showerror("Error", "Please enter a ticker")
+            return
+        watchlist = self.load_watchlist()
+        if ticker not in watchlist:
+            watchlist.append(ticker)
+            self.save_watchlist(watchlist)
+        messagebox.showinfo("Info", f"{ticker} added to watchlist")
+
+    def show_watchlist(self):
+        watchlist = self.load_watchlist()
+        if not watchlist:
+            msg = "Watchlist is empty"
+        else:
+            msg = "\n".join(watchlist)
+        messagebox.showinfo("Watchlist", msg)
+
+    def import_webull_portfolio(self):
+        try:
+            tickers = self.webull.get_portfolio_tickers()
+            watchlist = self.load_watchlist()
+            added = 0
+            for t in tickers:
+                if t not in watchlist:
+                    watchlist.append(t)
+                    added += 1
+            self.save_watchlist(watchlist)
+            messagebox.showinfo("Info", f"Imported {added} tickers from Webull")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
 if __name__ == "__main__":
     root = tk.Tk()
