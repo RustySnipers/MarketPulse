@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score
 import joblib
 import datetime
 import os
-import backtrader as bt  # Make sure backtrader is imported
+import backtrader as bt  # backtrader provides the strategy engine
 
 # Load and preprocess historical data
 def load_data(file_path):
