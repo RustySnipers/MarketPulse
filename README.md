@@ -25,6 +25,7 @@ Market Pulse is a Python-based application designed for tracking day trades, par
 - **Trade Input**: Easy input and management of trades.
 - **Analytics Dashboard**: Visual representation of trade performance.
 - **Printable Reports**: Generate and print detailed reports of trading activities.
+- **Interactive Calendar**: View and filter market events with color-coded severity and type.
 
 ## Getting Started
 

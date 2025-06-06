@@ -4,6 +4,7 @@ import threading
 from backtesting import run_backtest
 from ml_training import run_ml_training
 from trading import start_trading_bot, stop_trading_bot
+from calendar_app import CalendarApp, load_example_events
 import time
 
 class TradingBotApp:
@@ -36,6 +37,10 @@ class TradingBotApp:
         self.start_button.pack()
         self.stop_button = tk.Button(self.root, text="Stop Trading", command=self.stop_trading)
         self.stop_button.pack()
+
+        # Calendar Section
+        self.calendar_button = tk.Button(self.root, text="Open Calendar", command=self.open_calendar)
+        self.calendar_button.pack()
         
         # Report Section
         self.report_label = tk.Label(self.root, text="")
@@ -78,6 +83,12 @@ class TradingBotApp:
         self.trading_active = False
         stop_trading_bot()
         messagebox.showinfo("Info", "Trading stopped")
+
+    def open_calendar(self):
+        top = tk.Toplevel(self.root)
+        top.title("Market Calendar")
+        events = load_example_events()
+        CalendarApp(top, events)
 
 if __name__ == "__main__":
     root = tk.Tk()
