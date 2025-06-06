@@ -68,6 +68,7 @@ def generate_report(results):
         f"Trading Plan:\n{trading_plan}"
     )
     print(report_content)  # Debug print to check report content
+    os.makedirs('reports', exist_ok=True)
     with open(report_filename, 'w') as f:
         f.write(report_content)
     print(f"Backtesting completed. Report generated in {report_filename}")
