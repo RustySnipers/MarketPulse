@@ -8,4 +8,5 @@ backtrader
 matplotlib
 joblib
 ta
+webull
 tkcalendar

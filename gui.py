@@ -1,16 +1,19 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 import threading
 from backtesting import run_backtest
 from ml_training import run_ml_training
 from trading import start_trading_bot, stop_trading_bot
 from calendar_app import CalendarApp, load_example_events
+from watchlist import load_watchlist, save_watchlist
+from webull_integration import login_webull, fetch_portfolio
 import time
 
 class TradingBotApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Trading Bot")
+        self.watchlist = load_watchlist()
         self.create_widgets()
         self.data = None
         self.trading_active = False
@@ -31,6 +34,20 @@ class TradingBotApp:
         self.ticker_label.pack()
         self.ticker_entry = tk.Entry(self.root)
         self.ticker_entry.pack()
+
+        # Watchlist Section
+        self.watchlist_label = tk.Label(self.root, text="Watchlist (comma separated):")
+        self.watchlist_label.pack()
+        self.watchlist_entry = tk.Entry(self.root)
+        self.watchlist_entry.pack()
+        self.set_watchlist_button = tk.Button(self.root, text="Set Watchlist", command=self.set_watchlist)
+        self.set_watchlist_button.pack()
+
+        # Webull Portfolio Section
+        self.load_portfolio_button = tk.Button(self.root, text="Load Webull Portfolio", command=self.load_webull_portfolio)
+        self.load_portfolio_button.pack()
+        self.portfolio_box = tk.Listbox(self.root, height=6)
+        self.portfolio_box.pack(fill=tk.BOTH, expand=False)
         
         # Control Bot Section
         self.start_button = tk.Button(self.root, text="Start Trading", command=self.start_trading)
@@ -89,6 +106,37 @@ class TradingBotApp:
         top.title("Market Calendar")
         events = load_example_events()
         CalendarApp(top, events)
+
+    def set_watchlist(self):
+        tickers = [t.strip().upper() for t in self.watchlist_entry.get().split(',') if t.strip()]
+        if not tickers:
+            messagebox.showerror("Error", "Please enter at least one ticker")
+            return
+        self.watchlist = tickers
+        save_watchlist(self.watchlist)
+        messagebox.showinfo("Watchlist", "Watchlist updated")
+
+    def load_webull_portfolio(self):
+        username = simpledialog.askstring("Webull Login", "Username or Email:")
+        password = simpledialog.askstring("Webull Login", "Password:", show='*')
+        if not username or not password:
+            messagebox.showerror("Error", "Username and password are required")
+            return
+        mfa = simpledialog.askstring("Webull Login", "MFA Code (if applicable):", show='*')
+        try:
+            wb = login_webull(username=username, password=password, mfa=mfa or "")
+            tickers, positions = fetch_portfolio(wb)
+            if tickers:
+                self.watchlist = tickers
+                save_watchlist(self.watchlist)
+            self.portfolio_box.delete(0, tk.END)
+            for p in positions:
+                symbol = p.get('ticker', 'N/A')
+                qty = p.get('position', p.get('positionStr', ''))
+                self.portfolio_box.insert(tk.END, f"{symbol}: {qty}")
+            messagebox.showinfo("Portfolio", "Portfolio loaded from Webull")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load portfolio: {e}")
 
 if __name__ == "__main__":
     root = tk.Tk()

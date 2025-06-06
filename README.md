@@ -23,6 +23,7 @@ Market Pulse is a Python-based application designed for tracking day trades, par
 - **Analytics Dashboard**: Visual representation of trade performance.
 - **Printable Reports**: Generate and print detailed reports of trading activities.
 - **Interactive Calendar**: View and filter market events with color-coded severity and type.
+- **Custom Watchlists**: Manage your own list of tickers or import them from your Webull portfolio.
 
 ## Getting Started
 
@@ -80,6 +81,10 @@ After setting up the environment and installing dependencies, you can run the ap
 \`\`\`bash
 python main.py
 \`\`\`
+
+### Managing Watchlists and Webull Portfolio
+
+When the GUI is running you can enter a comma-separated list of tickers to set a custom watchlist. Use the **Load Webull Portfolio** button to import your holdings from your Webull account. Credentials are requested at runtime and are never saved.
 
 ### Building the Executable
 
