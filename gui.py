@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog
+from tkinter import ttk
 import threading
 from backtesting import run_backtest
 from ml_training import run_ml_training
@@ -8,6 +9,7 @@ from calendar_app import CalendarApp, load_example_events
 from watchlist import load_watchlist, save_watchlist
 from webull_integration import login_webull, fetch_portfolio
 from discord_webhook import send_discord_message
+from settings import load_settings, save_settings
 import time
 
 class TradingBotApp:
@@ -15,6 +17,7 @@ class TradingBotApp:
         self.root = root
         self.root.title("Trading Bot")
         self.watchlist = load_watchlist()
+        self.settings = load_settings()
         self.create_widgets()
         self.data = None
         self.trading_active = False
@@ -25,6 +28,12 @@ class TradingBotApp:
         self.backtest_button.pack()
         self.progress_label = tk.Label(self.root, text="")
         self.progress_label.pack()
+
+        # Configuration/Review buttons
+        self.settings_button = tk.Button(self.root, text="Settings", command=self.open_settings)
+        self.settings_button.pack()
+        self.review_button = tk.Button(self.root, text="Review Symbols", command=self.open_symbol_review)
+        self.review_button.pack()
 
         # ML Training Section
         self.ml_training_button = tk.Button(self.root, text="Start ML Training", command=self.start_ml_training)
@@ -110,6 +119,38 @@ class TradingBotApp:
         events = load_example_events()
         CalendarApp(top, events)
 
+    def open_settings(self):
+        top = tk.Toplevel(self.root)
+        top.title("Settings")
+        tk.Label(top, text="Data CSV File:").pack(anchor='w')
+        path_var = tk.StringVar(value=self.settings.get('data_file', ''))
+        path_entry = tk.Entry(top, textvariable=path_var, width=40)
+        path_entry.pack(fill=tk.X)
+
+        def save():
+            self.settings['data_file'] = path_var.get()
+            save_settings(self.settings)
+            messagebox.showinfo("Settings", "Settings saved")
+
+        tk.Button(top, text="Save", command=save).pack()
+
+    def open_symbol_review(self):
+        top = tk.Toplevel(self.root)
+        top.title("Symbols")
+        frame = ttk.Frame(top)
+        frame.pack(fill=tk.BOTH, expand=True)
+        tk.Label(frame, text="Watchlist:").pack(anchor='w')
+        watch_box = tk.Listbox(frame)
+        watch_box.pack(fill=tk.BOTH, expand=True)
+        for t in self.watchlist:
+            watch_box.insert(tk.END, t)
+
+        tk.Label(frame, text="Portfolio:").pack(anchor='w')
+        port_box = tk.Listbox(frame)
+        port_box.pack(fill=tk.BOTH, expand=True)
+        for i in range(self.portfolio_box.size()):
+            port_box.insert(tk.END, self.portfolio_box.get(i))
+
     def set_watchlist(self):
         tickers = [t.strip().upper() for t in self.watchlist_entry.get().split(',') if t.strip()]
         if not tickers:
@@ -148,3 +189,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = TradingBotApp(root)
     root.mainloop()
+

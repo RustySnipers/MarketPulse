@@ -9,6 +9,7 @@ import joblib
 import datetime
 import os
 import backtrader as bt  # backtrader provides the strategy engine
+from settings import load_settings
 
 # Load and preprocess historical data
 def load_data(file_path):
@@ -93,7 +94,8 @@ class MLStrategy(bt.Strategy):
             self.sell()
 
 def run_backtest():
-    file_path = 'data/SPY2324.csv'
+    settings = load_settings()
+    file_path = settings.get('data_file', 'data/SPY2324.csv')
     data = load_data(file_path)
     results = perform_backtest(data)
     generate_report(results)

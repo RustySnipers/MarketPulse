@@ -8,6 +8,7 @@ from discord_webhook import send_discord_message
 import joblib
 import datetime
 import os
+from settings import load_settings
 
 def load_data(file_path):
     data = pd.read_csv(file_path)
@@ -72,7 +73,8 @@ def generate_ml_report(results):
     print(f"ML Training completed. Report generated in {report_filename}")
 
 def run_ml_training():
-    file_path = 'data/SPY2324.csv'
+    settings = load_settings()
+    file_path = settings.get('data_file', 'data/SPY2324.csv')
     data = load_data(file_path)
     results = perform_ml_training(data)
     generate_ml_report(results)
