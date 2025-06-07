@@ -18,8 +18,11 @@ def load_data(file_path):
         data.rename(columns={'Date': 'date'}, inplace=True)
     data['date'] = pd.to_datetime(data['date'])
     data.set_index('date', inplace=True)
-    data['Volume'] = pd.to_numeric(
-        data['Volume'].astype(str).str.replace(',', ''), errors='coerce'
+    data['Volume'] = (
+        pd.to_numeric(
+            data['Volume'].astype(str).str.replace(',', ''), errors='coerce'
+        )
+        .astype(float)
     )
     data = add_all_ta_features(data, open="Open", high="High", low="Low", close="Close", volume="Volume")
     data['hour'] = data.index.hour
