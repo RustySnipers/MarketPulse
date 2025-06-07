@@ -60,7 +60,7 @@ jobs:
     - name: Build Executable with PyInstaller
       run: |
         source venv/bin/activate
-        pyinstaller --onefile main.py
+        pyinstaller --onefile --additional-hooks-dir=hooks main.py
 
     - name: Install xvfb
       run: |
