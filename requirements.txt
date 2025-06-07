@@ -3,6 +3,8 @@ pandas
 numpy
 scikit-learn
 tensorflow
+# TA-Lib requires system libraries; pre-built wheels are available:
+# https://github.com/mrjbq7/ta-lib/releases
 TA-Lib==0.4.28
 backtrader
 matplotlib

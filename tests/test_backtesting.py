@@ -1,12 +1,15 @@
-import pandas as pd
 import sys
 from pathlib import Path
+import pytest
+
+pd = pytest.importorskip("pandas")
+pytest.importorskip("ta")
 
 # Ensure the repository root is in sys.path so we can import backtesting.py
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-import backtesting
+import backtesting  # noqa: E402
 
 
 def test_load_data_volume_and_hour(tmp_path):
@@ -15,14 +18,16 @@ def test_load_data_volume_and_hour(tmp_path):
     rows = []
     for i in range(30):
         ts = start + pd.Timedelta(hours=i)
-        rows.append({
-            "Date": ts.strftime("%Y-%m-%d %H:%M"),
-            "Open": 100 + i,
-            "High": 110 + i,
-            "Low": 90 + i,
-            "Close": 105 + i,
-            "Volume": f"{1000 * (i+1):,}"
-        })
+        rows.append(
+            {
+                "Date": ts.strftime("%Y-%m-%d %H:%M"),
+                "Open": 100 + i,
+                "High": 110 + i,
+                "Low": 90 + i,
+                "Close": 105 + i,
+                "Volume": f"{1000 * (i+1):,}",
+            }
+        )
     df_in = pd.DataFrame(rows)
 
     file_path = tmp_path / "sample.csv"
