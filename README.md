@@ -62,16 +62,9 @@ Before you begin, ensure you have the following software installed:
 
 4. **Install TA-Lib**
 
-    \`\`\`bash
-    wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
-    tar -xzf ta-lib-0.4.0-src.tar.gz
-    cd ta-lib
-    ./configure --prefix=/usr
-    make
-    sudo make install
-    cd ..
-    pip install ta-lib
-    \`\`\`
+    ```bash
+    pip install TA-Lib==0.4.28
+    ```
 
 ## Usage
 

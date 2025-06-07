@@ -3,7 +3,7 @@ pandas
 numpy
 scikit-learn
 tensorflow
-TA-Lib
+TA-Lib==0.4.28
 backtrader
 matplotlib
 joblib
