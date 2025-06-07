@@ -66,21 +66,21 @@ class TradingBotApp:
     
     def perform_backtest(self):
         def backtest():
-            self.progress_label.config(text="Backtesting in progress...")
+            self.root.after(0, lambda: self.progress_label.config(text="Backtesting in progress..."))
             run_backtest()
-            self.progress_label.config(text="Backtesting completed. Report generated in reports folder")
-            self.report_label.config(text="Backtesting completed. Report generated in reports folder")
-        
-        threading.Thread(target=backtest).start()
+            self.root.after(0, lambda: self.progress_label.config(text="Backtesting completed. Report generated in reports folder"))
+            self.root.after(0, lambda: self.report_label.config(text="Backtesting completed. Report generated in reports folder"))
+
+        threading.Thread(target=backtest, daemon=True).start()
 
     def start_ml_training(self):
         def training():
-            self.progress_label.config(text="ML Training in progress...")
+            self.root.after(0, lambda: self.progress_label.config(text="ML Training in progress..."))
             run_ml_training()
-            self.progress_label.config(text="ML Training completed. Report generated in reports folder")
-            self.report_label.config(text="ML Training completed. Report generated in reports folder")
-        
-        threading.Thread(target=training).start()
+            self.root.after(0, lambda: self.progress_label.config(text="ML Training completed. Report generated in reports folder"))
+            self.root.after(0, lambda: self.report_label.config(text="ML Training completed. Report generated in reports folder"))
+
+        threading.Thread(target=training, daemon=True).start()
 
     def start_trading(self):
         ticker = self.ticker_entry.get()
@@ -94,7 +94,7 @@ class TradingBotApp:
                 time.sleep(1)
         
         self.trading_active = True
-        threading.Thread(target=trading).start()
+        threading.Thread(target=trading, daemon=True).start()
         messagebox.showinfo("Info", "Trading started")
         send_discord_message(f"Trading started for {ticker}")
 
