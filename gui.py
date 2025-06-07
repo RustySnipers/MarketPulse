@@ -6,6 +6,7 @@ from backtesting import run_backtest
 from ml_training import run_ml_training
 from trading import start_trading_bot, stop_trading_bot
 from calendar_app import CalendarApp, load_example_events
+from tradingview_integration import TradingViewSession
 from watchlist import load_watchlist, save_watchlist
 from webull_integration import login_webull, fetch_portfolio
 from discord_webhook import send_discord_message
@@ -18,6 +19,7 @@ class TradingBotApp:
         self.root.title("Trading Bot")
         self.watchlist = load_watchlist()
         self.settings = load_settings()
+        self.tv_session = TradingViewSession()
         self.create_widgets()
         self.data = None
         self.trading_active = False
@@ -58,6 +60,12 @@ class TradingBotApp:
         self.load_portfolio_button.pack()
         self.portfolio_box = tk.Listbox(self.root, height=6)
         self.portfolio_box.pack(fill=tk.BOTH, expand=False)
+
+        # TradingView Section
+        self.tv_login_button = tk.Button(self.root, text="Login TradingView", command=self.login_tradingview)
+        self.tv_login_button.pack()
+        self.tv_chart_button = tk.Button(self.root, text="Open TradingView Chart", command=self.open_tradingview_chart)
+        self.tv_chart_button.pack()
         
         # Control Bot Section
         self.start_button = tk.Button(self.root, text="Start Trading", command=self.start_trading)
@@ -118,6 +126,28 @@ class TradingBotApp:
         top.title("Market Calendar")
         events = load_example_events()
         CalendarApp(top, events)
+
+    def login_tradingview(self):
+        username = simpledialog.askstring("TradingView Login", "Username:")
+        password = simpledialog.askstring("TradingView Login", "Password:", show='*')
+        if not username or not password:
+            messagebox.showerror("Error", "Username and password are required")
+            return
+        try:
+            self.tv_session.login(username, password)
+            messagebox.showinfo("TradingView", "Login successful")
+        except Exception as e:
+            messagebox.showerror("Error", f"TradingView login failed: {e}")
+
+    def open_tradingview_chart(self):
+        ticker = self.ticker_entry.get()
+        if not ticker:
+            messagebox.showerror("Error", "Please enter a ticker")
+            return
+        try:
+            self.tv_session.open_chart(ticker)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open chart: {e}")
 
     def open_settings(self):
         top = tk.Toplevel(self.root)

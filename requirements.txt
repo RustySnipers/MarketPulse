@@ -12,3 +12,4 @@ webull
 tkcalendar
 requests
 pytest
+pywebview
