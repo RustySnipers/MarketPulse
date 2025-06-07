@@ -86,6 +86,10 @@ python main.py
 
 When the GUI is running you can enter a comma-separated list of tickers to set a custom watchlist. Use the **Load Webull Portfolio** button to import your holdings from your Webull account. Credentials are requested at runtime and are never saved.
 
+### Settings and Symbol Review
+
+The application now includes a **Settings** window for adjusting the data CSV path and other options. Use the **Review Symbols** button to open a window showing your current watchlist and loaded portfolio for quick reference.
+
 ### Discord Notifications
 
 Set the `DISCORD_WEBHOOK_URL` environment variable to send trading events and
