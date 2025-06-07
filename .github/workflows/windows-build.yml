@@ -1,0 +1,43 @@
+name: Windows Release
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller requests packaging
+      - name: Build executables
+        run: |
+          pyinstaller --noconfirm --onefile launcher.py
+          pyinstaller --noconfirm --onefile main.py
+      - name: Install Inno Setup
+        run: |
+          curl -L -o isetup.exe https://www.jrsoftware.org/download.php/is.exe
+          ./isetup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+      - name: Build installer
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss /DMyAppVersion=${{ github.ref_name }}
+      - name: Prepare artifacts
+        shell: bash
+        run: |
+          mkdir artifacts
+          cp dist-installer/MarketPulseSetup.exe artifacts/
+          echo '{"version": "${{ github.ref_name }}", "installer_url": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/MarketPulseSetup.exe"}' > artifacts/manifest.json
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
