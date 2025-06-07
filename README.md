@@ -13,6 +13,7 @@ Market Pulse is a Python-based application designed for tracking day trades, par
   - [Usage](#usage)
     - [Running the Application](#running-the-application)
     - [Building the Executable](#building-the-executable)
+  - [Testing](#testing)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -127,7 +128,16 @@ To build an executable using PyInstaller, follow these steps:
 
 4. **Locate the Executable**
 
-    The executable will be located in the \`dist\` directory.
+The executable will be located in the \`dist\` directory.
+
+## Testing
+
+Run the automated test suite after installing dependencies:
+
+```bash
+pip install -r requirements.txt
+pytest
+```
 
 ## Contributing
 
