@@ -18,7 +18,7 @@ def self_improve_model(new_data):
     model = joblib.load('models/model.pkl')
     
     data = pd.read_csv('data/historical_data.csv', parse_dates=True, index_col='date')
-    data = data.append(new_data)
+    data = pd.concat([data, new_data])
     data.to_csv('data/historical_data.csv')
     
     X = data[features]
