@@ -4,13 +4,17 @@ import os
 SETTINGS_FILE = "settings.json"
 DEFAULTS = {
     "data_file": "data/SPY2324.csv",
-    "discord_webhook": os.environ.get("DISCORD_WEBHOOK_URL", "")
+    "discord_webhook": os.environ.get("DISCORD_WEBHOOK_URL", ""),
 }
+
 
 def load_settings():
     if os.path.exists(SETTINGS_FILE):
-        with open(SETTINGS_FILE, "r") as f:
-            data = json.load(f)
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            data = {}
     else:
         data = {}
     merged = DEFAULTS.copy()
@@ -19,5 +23,5 @@ def load_settings():
 
 
 def save_settings(settings):
-    with open(SETTINGS_FILE, "w") as f:
+    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2)
