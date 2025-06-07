@@ -81,6 +81,12 @@ After setting up the environment and installing dependencies, you can run the ap
 \`\`\`bash
 python main.py
 \`\`\`
+Alternatively, double-click one of the provided start scripts:
+
+- **Windows**: `start_app.bat`
+- **macOS/Linux**: `start_app.sh`
+
+These scripts launch `main.py` for you so a terminal isn't required.
 
 ### Managing Watchlists and Webull Portfolio
 
