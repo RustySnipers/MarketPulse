@@ -5,11 +5,10 @@ Market Pulse is a Python-based application designed for tracking day trades, par
 ## Windows Quick Start
 
 1. Double-click `install.bat`
-2. Click **Install**
-3. Click **Launch**
+2. Follow the prompts
+3. Enjoy using the application
 
-Updates are automatically offered at startup.
-
+Updates are offered automatically at startup.
 *GIFs demonstrating the install and update flows were omitted from this repository.*
 
 ## Table of Contents

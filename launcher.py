@@ -9,7 +9,7 @@ from packaging import version
 
 from version import __version__ as APP_VERSION
 
-MANIFEST_URL = "https://github.com/your-username/market-pulse/releases/latest/download/manifest.json"
+MANIFEST_URL = "https://github.com/your-username/MarketPulse/releases/latest/download/manifest.json"
 APP_NAME = "Market Pulse"
 
 
