@@ -2,13 +2,14 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog
 from tkinter import ttk
 import threading
+import re
 from backtesting import run_backtest
 from ml_training import run_ml_training
 from trading import start_trading_bot, stop_trading_bot
-from calendar_app import CalendarApp, load_example_events
-from tradingview_integration import TradingViewSession
+from calendar_app import CalendarApp, load_events
+from tradingview_integration import TradingViewSession, clear_saved_tradingview
 from watchlist import load_watchlist, save_watchlist
-from webull_integration import login_webull, fetch_portfolio
+from webull_integration import login_webull, fetch_portfolio, clear_saved_webull
 from discord_webhook import send_discord_message
 from settings import load_settings, save_settings
 import time
@@ -20,88 +21,115 @@ class TradingBotApp:
         self.watchlist = load_watchlist()
         self.settings = load_settings()
         self.tv_session = TradingViewSession()
+        self.ticker_pattern = re.compile(r"^[A-Za-z0-9.-]{1,10}$")
+        self.style = ttk.Style()
+        if self.settings.get('theme') == 'dark':
+            self.style.theme_use('clam')
         self.create_widgets()
         self.data = None
         self.trading_active = False
 
     def create_widgets(self):
+
+        main = ttk.Frame(self.root)
+        main.grid(column=0, row=0, sticky="nsew")
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
+
+        data_frame = ttk.LabelFrame(main, text="Data & Analysis")
+        data_frame.grid(column=0, row=0, padx=5, pady=5, sticky="ew")
+
+        trade_frame = ttk.LabelFrame(main, text="Trading")
+        trade_frame.grid(column=0, row=1, padx=5, pady=5, sticky="ew")
+
+        integ_frame = ttk.LabelFrame(main, text="Integrations")
+        integ_frame.grid(column=0, row=2, padx=5, pady=5, sticky="ew")
+
         # Backtesting Section
-        self.backtest_button = tk.Button(self.root, text="Perform Backtesting", command=self.perform_backtest)
-        self.backtest_button.pack()
-        self.progress_label = tk.Label(self.root, text="")
-        self.progress_label.pack()
+        self.backtest_button = ttk.Button(data_frame, text="Perform Backtesting", command=self.perform_backtest)
+        self.backtest_button.grid(column=0, row=0, sticky="ew")
+        self.ml_training_button = ttk.Button(data_frame, text="Start ML Training", command=self.start_ml_training)
+        self.ml_training_button.grid(column=1, row=0, sticky="ew")
+        data_frame.columnconfigure((0,1), weight=1)
+        self.progress = ttk.Progressbar(data_frame, mode="indeterminate")
+        self.progress.grid(column=0, row=1, columnspan=2, sticky="ew")
+        self.progress_label = ttk.Label(data_frame, text="")
+        self.progress_label.grid(column=0, row=2, columnspan=2, sticky="ew")
+
+        # Ticker Input
+        ttk.Label(trade_frame, text="Enter Ticker:").grid(column=0, row=0, sticky="w")
+        self.ticker_entry = ttk.Entry(trade_frame)
+        self.ticker_entry.grid(column=1, row=0, sticky="ew")
+        trade_frame.columnconfigure(1, weight=1)
 
         # Configuration/Review buttons
-        self.settings_button = tk.Button(self.root, text="Settings", command=self.open_settings)
-        self.settings_button.pack()
-        self.review_button = tk.Button(self.root, text="Review Symbols", command=self.open_symbol_review)
-        self.review_button.pack()
-
-        # ML Training Section
-        self.ml_training_button = tk.Button(self.root, text="Start ML Training", command=self.start_ml_training)
-        self.ml_training_button.pack()
-
-        # Ticker Input Section
-        self.ticker_label = tk.Label(self.root, text="Enter Ticker:")
-        self.ticker_label.pack()
-        self.ticker_entry = tk.Entry(self.root)
-        self.ticker_entry.pack()
+        self.settings_button = ttk.Button(integ_frame, text="Settings", command=self.open_settings)
+        self.settings_button.grid(column=0, row=0, sticky="ew")
+        self.review_button = ttk.Button(integ_frame, text="Review Symbols", command=self.open_symbol_review)
+        self.review_button.grid(column=1, row=0, sticky="ew")
+        integ_frame.columnconfigure((0,1), weight=1)
 
         # Watchlist Section
-        self.watchlist_label = tk.Label(self.root, text="Watchlist (comma separated):")
-        self.watchlist_label.pack()
-        self.watchlist_entry = tk.Entry(self.root)
-        self.watchlist_entry.pack()
-        self.set_watchlist_button = tk.Button(self.root, text="Set Watchlist", command=self.set_watchlist)
-        self.set_watchlist_button.pack()
+        ttk.Label(trade_frame, text="Watchlist (comma separated):").grid(column=0, row=1, sticky="w")
+        self.watchlist_entry = ttk.Entry(trade_frame)
+        self.watchlist_entry.grid(column=1, row=1, sticky="ew")
+        self.set_watchlist_button = ttk.Button(trade_frame, text="Set Watchlist", command=self.set_watchlist)
+        self.set_watchlist_button.grid(column=2, row=1, sticky="ew")
+        trade_frame.columnconfigure(2, weight=0)
 
         # Webull Portfolio Section
-        self.load_portfolio_button = tk.Button(self.root, text="Load Webull Portfolio", command=self.load_webull_portfolio)
-        self.load_portfolio_button.pack()
-        self.portfolio_box = tk.Listbox(self.root, height=6)
-        self.portfolio_box.pack(fill=tk.BOTH, expand=False)
+        self.load_portfolio_button = ttk.Button(integ_frame, text="Load Webull Portfolio", command=self.load_webull_portfolio)
+        self.load_portfolio_button.grid(column=0, row=1, sticky="ew")
+        self.portfolio_box = tk.Listbox(integ_frame, height=6)
+        self.portfolio_box.grid(column=0, row=2, columnspan=2, sticky="ew")
 
         # TradingView Section
-        self.tv_login_button = tk.Button(self.root, text="Login TradingView", command=self.login_tradingview)
-        self.tv_login_button.pack()
-        self.tv_chart_button = tk.Button(self.root, text="Open TradingView Chart", command=self.open_tradingview_chart)
-        self.tv_chart_button.pack()
-        
-        # Control Bot Section
-        self.start_button = tk.Button(self.root, text="Start Trading", command=self.start_trading)
-        self.start_button.pack()
-        self.stop_button = tk.Button(self.root, text="Stop Trading", command=self.stop_trading)
-        self.stop_button.pack()
+        self.tv_login_button = ttk.Button(integ_frame, text="Login TradingView", command=self.login_tradingview)
+        self.tv_login_button.grid(column=1, row=1, sticky="ew")
+        self.tv_chart_button = ttk.Button(integ_frame, text="Open TradingView Chart", command=self.open_tradingview_chart)
+        self.tv_chart_button.grid(column=1, row=2, sticky="ew")
 
-        # Calendar Section
-        self.calendar_button = tk.Button(self.root, text="Open Calendar", command=self.open_calendar)
-        self.calendar_button.pack()
-        
+        # Control Bot Section
+        self.start_button = ttk.Button(trade_frame, text="Start Trading", command=self.start_trading)
+        self.start_button.grid(column=0, row=2, sticky="ew")
+        self.stop_button = ttk.Button(trade_frame, text="Stop Trading", command=self.stop_trading)
+        self.stop_button.grid(column=1, row=2, sticky="ew")
+        self.calendar_button = ttk.Button(trade_frame, text="Open Calendar", command=self.open_calendar)
+        self.calendar_button.grid(column=2, row=2, sticky="ew")
+
         # Report Section
-        self.report_label = tk.Label(self.root, text="")
-        self.report_label.pack()
+        self.report_label = ttk.Label(main, text="")
+        self.report_label.grid(column=0, row=3, sticky="ew")
     
     def perform_backtest(self):
         def backtest():
+            self.root.after(0, self.progress.start)
             self.root.after(0, lambda: self.progress_label.config(text="Backtesting in progress..."))
             run_backtest()
+            self.root.after(0, self.progress.stop)
             self.root.after(0, lambda: self.progress_label.config(text="Backtesting completed. Report generated in reports folder"))
             self.root.after(0, lambda: self.report_label.config(text="Backtesting completed. Report generated in reports folder"))
+            self.root.after(0, lambda: self.backtest_button.config(state="normal"))
 
+        self.backtest_button.config(state="disabled")
         threading.Thread(target=backtest, daemon=True).start()
 
     def start_ml_training(self):
         def training():
+            self.root.after(0, self.progress.start)
             self.root.after(0, lambda: self.progress_label.config(text="ML Training in progress..."))
             run_ml_training()
+            self.root.after(0, self.progress.stop)
             self.root.after(0, lambda: self.progress_label.config(text="ML Training completed. Report generated in reports folder"))
             self.root.after(0, lambda: self.report_label.config(text="ML Training completed. Report generated in reports folder"))
+            self.root.after(0, lambda: self.ml_training_button.config(state="normal"))
 
+        self.ml_training_button.config(state="disabled")
         threading.Thread(target=training, daemon=True).start()
 
     def start_trading(self):
-        ticker = self.ticker_entry.get()
-        if not ticker:
+        ticker = self.ticker_entry.get().strip().upper()
+        if not ticker or not self.ticker_pattern.match(ticker):
             messagebox.showerror("Error", "Please enter a ticker")
             return
 
@@ -124,7 +152,7 @@ class TradingBotApp:
     def open_calendar(self):
         top = tk.Toplevel(self.root)
         top.title("Market Calendar")
-        events = load_example_events()
+        events = load_events()
         CalendarApp(top, events)
 
     def login_tradingview(self):
@@ -134,14 +162,18 @@ class TradingBotApp:
             messagebox.showerror("Error", "Username and password are required")
             return
         try:
-            self.tv_session.login(username, password)
+            save = messagebox.askyesno("Save Credentials", "Save TradingView credentials?")
+            self.tv_session.login(username, password, save=save)
+            if save:
+                self.settings['tradingview_user'] = username
+                save_settings(self.settings)
             messagebox.showinfo("TradingView", "Login successful")
         except Exception as e:
             messagebox.showerror("Error", f"TradingView login failed: {e}")
 
     def open_tradingview_chart(self):
-        ticker = self.ticker_entry.get()
-        if not ticker:
+        ticker = self.ticker_entry.get().strip().upper()
+        if not ticker or not self.ticker_pattern.match(ticker):
             messagebox.showerror("Error", "Please enter a ticker")
             return
         try:
@@ -157,9 +189,33 @@ class TradingBotApp:
         path_entry = tk.Entry(top, textvariable=path_var, width=40)
         path_entry.pack(fill=tk.X)
 
+        tk.Label(top, text="Discord Webhook URL:").pack(anchor='w')
+        webhook_var = tk.StringVar(value=self.settings.get('discord_webhook', ''))
+        webhook_entry = tk.Entry(top, textvariable=webhook_var, width=40)
+        webhook_entry.pack(fill=tk.X)
+
+        tk.Label(top, text="Theme:").pack(anchor='w')
+        theme_var = tk.StringVar(value=self.settings.get('theme', 'light'))
+        ttk.Combobox(top, textvariable=theme_var, values=['light', 'dark'], state='readonly').pack(fill=tk.X)
+
+        cred_frame = ttk.LabelFrame(top, text="Credentials")
+        cred_frame.pack(fill=tk.X, pady=5)
+        wb_label = ttk.Label(cred_frame, text=f"Webull: {self.settings.get('webull_user') or 'None'}")
+        wb_label.grid(column=0, row=0, sticky="w")
+        ttk.Button(cred_frame, text="Clear", command=lambda:self.clear_credential('webull')).grid(column=1, row=0)
+        tv_label = ttk.Label(cred_frame, text=f"TradingView: {self.settings.get('tradingview_user') or 'None'}")
+        tv_label.grid(column=0, row=1, sticky="w")
+        ttk.Button(cred_frame, text="Clear", command=lambda:self.clear_credential('tradingview')).grid(column=1, row=1)
+
         def save():
             self.settings['data_file'] = path_var.get()
+            self.settings['discord_webhook'] = webhook_var.get()
+            self.settings['theme'] = theme_var.get()
             save_settings(self.settings)
+            if self.settings['theme'] == 'dark':
+                self.style.theme_use('clam')
+            else:
+                self.style.theme_use('default')
             messagebox.showinfo("Settings", "Settings saved")
 
         tk.Button(top, text="Save", command=save).pack()
@@ -181,6 +237,15 @@ class TradingBotApp:
         for i in range(self.portfolio_box.size()):
             port_box.insert(tk.END, self.portfolio_box.get(i))
 
+    def clear_credential(self, service: str):
+        if service == 'webull' and self.settings.get('webull_user'):
+            clear_saved_webull(self.settings['webull_user'])
+            self.settings['webull_user'] = ''
+        elif service == 'tradingview' and self.settings.get('tradingview_user'):
+            clear_saved_tradingview(self.settings['tradingview_user'])
+            self.settings['tradingview_user'] = ''
+        save_settings(self.settings)
+
     def set_watchlist(self):
         tickers = [t.strip().upper() for t in self.watchlist_entry.get().split(',') if t.strip()]
         if not tickers:
@@ -199,7 +264,11 @@ class TradingBotApp:
             return
         mfa = simpledialog.askstring("Webull Login", "MFA Code (if applicable):", show='*')
         try:
-            wb = login_webull(username=username, password=password, mfa=mfa or "")
+            save = messagebox.askyesno("Save Credentials", "Save Webull credentials?")
+            wb = login_webull(username=username, password=password, mfa=mfa or "", save=save)
+            if save:
+                self.settings['webull_user'] = username
+                save_settings(self.settings)
             tickers, positions = fetch_portfolio(wb)
             if tickers:
                 self.watchlist = tickers

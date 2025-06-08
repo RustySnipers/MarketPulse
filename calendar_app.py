@@ -1,7 +1,11 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 from tkcalendar import Calendar
 from datetime import datetime
+import json
+import os
+
+EVENTS_FILE = "calendar_events.json"
 
 
 class ToolTip:
@@ -107,6 +111,8 @@ class CalendarApp(tk.Frame):
                 anchor="w"
             )
 
+        ttk.Button(right, text="Add Event", command=self.add_event).pack(fill=tk.X, padx=5, pady=5)
+
     def load_events(self):
         self.cal.calevent_remove("all")
         companies = sorted(set(ev["company"] for ev in self.events))
@@ -195,45 +201,43 @@ class CalendarApp(tk.Frame):
         detail = f"{ev['date']}\n{ev['company']} - {ev['type'].capitalize()}\n{ev.get('description', '')}"
         messagebox.showinfo(ev["title"], detail)
 
-
-# Example usage within the existing GUI
-
-
-def load_example_events():
-    return [
-        {
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "company": "AAPL",
-            "title": "Earnings Call",
-            "type": "earnings",
-            "severity": "high",
-            "description": "Quarterly earnings announcement.",
-            "sector": "Technology",
-        },
-        {
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "company": "MSFT",
-            "title": "Dividend Payment",
-            "type": "dividend",
-            "severity": "medium",
-            "description": "Quarterly dividend distribution.",
-            "sector": "Technology",
-        },
-        {
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "company": "GOOGL",
-            "title": "Custom Meeting",
+    def add_event(self):
+        date = simpledialog.askstring("Add Event", "Date (YYYY-MM-DD):")
+        title = simpledialog.askstring("Add Event", "Title:")
+        company = simpledialog.askstring("Add Event", "Company:")
+        if not date or not title:
+            return
+        new_ev = {
+            "date": date,
+            "company": company or "",
+            "title": title,
             "type": "custom",
             "severity": "low",
-            "description": "Internal strategy meeting.",
-            "sector": "Communication",
-        },
-    ]
+            "description": "",
+        }
+        self.events.append(new_ev)
+        save_events(self.events)
+        self.apply_filters()
+
+
+def load_events():
+    if os.path.exists(EVENTS_FILE):
+        try:
+            with open(EVENTS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
+
+
+def save_events(events):
+    with open(EVENTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(events, f, indent=2)
 
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Market Events Calendar")
-    events = load_example_events()
+    events = load_events()
     app = CalendarApp(root, events)
     root.mainloop()
