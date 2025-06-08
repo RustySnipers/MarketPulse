@@ -34,6 +34,7 @@ Updates are offered automatically at startup.
 - **Printable Reports**: Generate and print detailed reports of trading activities.
 - **Interactive Calendar**: View and filter market events with color-coded severity and type.
 - **Custom Watchlists**: Manage your own list of tickers or import them from your Webull portfolio.
+- **Secure Credential Storage**: Optionally save your Webull and TradingView passwords using your OS keychain.
 
 ## Getting Started
 
@@ -74,6 +75,7 @@ Before you begin, ensure you have the following software installed:
     ```bash
     pip install TA-Lib==0.4.28
     ```
+    On macOS you may need `brew install ta-lib` beforehand, and on Windows pre-built wheels can be downloaded from [TA-Lib releases](https://github.com/mrjbq7/ta-lib/releases).
 
 ## Usage
 
@@ -93,18 +95,16 @@ These scripts launch `main.py` for you so a terminal isn't required.
 
 ### Managing Watchlists and Webull Portfolio
 
-When the GUI is running you can enter a comma-separated list of tickers to set a custom watchlist. Use the **Load Webull Portfolio** button to import your holdings from your Webull account. Credentials are requested at runtime and are never saved.
+When the GUI is running you can enter a comma-separated list of tickers to set a custom watchlist. Use the **Load Webull Portfolio** button to import your holdings from your Webull account. Credentials can now be stored securely using your system keychain if you choose to save them when prompted.
 
 ### Settings and Symbol Review
 
 The application now includes a **Settings** window for adjusting the data CSV path and other options. Use the **Review Symbols** button to open a window showing your current watchlist and loaded portfolio for quick reference.
+You can also switch between a light and dark theme from the Settings window.
 
 ### Discord Notifications
 
-Set the `DISCORD_WEBHOOK_URL` environment variable to send trading events and
-report summaries to a Discord channel. The application will post messages when
-trading starts or stops, watchlists change, portfolios are loaded, and when
-backtesting or ML training completes.
+Specify your Discord webhook URL in the **Settings** window (or via the `DISCORD_WEBHOOK_URL` environment variable) to receive notifications when trading starts or stops and when reports are generated.
 
 ### Building the Executable
 

@@ -1,62 +1,19 @@
-import pandas as pd
-import numpy as np
-from ta import add_all_ta_features
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
-from discord_webhook import send_discord_message
-import joblib
 import datetime
 import os
+
+from discord_webhook import send_discord_message
 from settings import load_settings
-
-
-def load_data(file_path):
-    data = pd.read_csv(file_path)
-    if "Date" in data.columns:
-        data.rename(columns={"Date": "date"}, inplace=True)
-    data["date"] = pd.to_datetime(data["date"])
-    data.set_index("date", inplace=True)
-    data["Volume"] = pd.to_numeric(
-        data["Volume"].astype(str).str.replace(",", ""), errors="coerce"
-    )
-    data = add_all_ta_features(
-        data, open="Open", high="High", low="Low", close="Close", volume="Volume"
-    )
-    data["hour"] = data.index.hour
-    return data
+from utils.ml_utils import load_data, train_random_forest
 
 
 def perform_ml_training(data):
-    features = [
-        "trend_macd",
-        "momentum_rsi",
-        "volatility_bbm",
-        "volatility_bbh",
-        "volatility_bbl",
-        "hour",
-    ]
-    data["target"] = np.where(data["Close"].shift(-1) > data["Close"], 1, 0)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        data[features], data["target"], test_size=0.2, random_state=42
-    )
-
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
-    joblib.dump(model, "models/ml_model.pkl")
-
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-
-    results = {"model": model, "accuracy": accuracy, "features": features}
-
-    return results
+    """Train a model for ML analysis."""
+    return train_random_forest(data, model_path="models/ml_model.pkl")
 
 
 def generate_ml_report(results):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_filename = f"reports/ml_training_report_{timestamp}.txt"
+    report_filename = f"reports/ml_training_report_{timestamp}.md"
     optimal_settings = {
         "MACD": "12, 26, 9",  # Example values
         "RSI": "14",
@@ -68,15 +25,20 @@ def generate_ml_report(results):
         "3. Use Bollinger Bands to set stop-loss and take-profit levels.\n"
         "4. Monitor trades and adjust positions based on market conditions."
     )
-    report_content = (
-        f"ML Training Report:\n\n"
-        f"Accuracy: {results['accuracy']:.2f}\n\n"
-        f"Optimal Settings:\n"
-        f"MACD: {optimal_settings['MACD']}\n"
-        f"RSI: {optimal_settings['RSI']}\n"
-        f"Bollinger Bands: {optimal_settings['Bollinger Bands']}\n\n"
-        f"Trading Plan:\n{trading_plan}"
-    )
+    report_content = f"""# ML Training Report
+
+**Accuracy:** {results['accuracy']:.2f}
+
+## Optimal Settings
+
+- MACD: {optimal_settings['MACD']}
+- RSI: {optimal_settings['RSI']}
+- Bollinger Bands: {optimal_settings['Bollinger Bands']}
+
+## Trading Plan
+
+{trading_plan}
+"""
     os.makedirs("reports", exist_ok=True)
     with open(report_filename, "w", encoding="utf-8") as f:
         f.write(report_content)

@@ -1,10 +1,12 @@
 import os
 import requests
+from settings import load_settings
 
 
 def send_discord_message(content: str, username: str = "MarketPulse", embeds=None):
     """Send a simple message to the configured Discord webhook."""
-    url = os.environ.get("DISCORD_WEBHOOK_URL")
+    settings = load_settings()
+    url = settings.get("discord_webhook") or os.environ.get("DISCORD_WEBHOOK_URL")
     if not url:
         print("Discord webhook URL not configured")
         return False

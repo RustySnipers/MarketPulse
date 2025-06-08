@@ -16,3 +16,4 @@ requests
 pytest
 pywebview
 packaging
+keyring

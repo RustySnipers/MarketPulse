@@ -5,6 +5,9 @@ SETTINGS_FILE = "settings.json"
 DEFAULTS = {
     "data_file": "data/SPY2324.csv",
     "discord_webhook": os.environ.get("DISCORD_WEBHOOK_URL", ""),
+    "webull_user": "",
+    "tradingview_user": "",
+    "theme": "light",
 }
 
 
