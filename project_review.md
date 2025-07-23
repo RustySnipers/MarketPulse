@@ -53,50 +53,18 @@ This document outlines identified bugs, unfinished features, and areas for impro
 - **Description:** The `self_improve_model` function was unused.
 - **Resolution:** An "Improve Model" button was added to the GUI to allow users to retrain the model with new data.
 
-## Low-Severity Issues
-
-### 1. **Blocking GUI Calls**
+### 8. **Blocking GUI Calls**
 - **Severity:** Low
-- **File:** `gui.py`
-- **Description:** The use of `simpledialog` and `messagebox` can block the main GUI thread. For a simple application, this is acceptable, but it can lead to a non-responsive UI during these operations.
-- **Suggested Solution:** For a more advanced implementation, custom non-blocking dialogs could be created. For now, this is a low-priority issue.
+- **Status:** **Fixed**
+- **File:** `dialogs.py`, `gui_trading.py`, `gui_integrations.py`
+- **Description:** The use of `simpledialog` and `messagebox` could block the main GUI thread.
+- **Resolution:** Custom non-blocking dialogs were created and implemented, preventing the GUI from becoming unresponsive.
 
-### 2. **Monolithic GUI Class**
+### 9. **Monolithic GUI Class**
 - **Severity:** Low
-- **File:** `gui.py`
-- **Description:** The `TradingBotApp` class is very large and handles all aspects of the GUI. This makes the code harder to read and maintain.
-- **Suggested Solution:** Refactor the `TradingBotApp` class by breaking it down into smaller, more focused components. For example, the Webull, TradingView, and backtesting sections could each be their own classes.
+- **Status:** **Fixed**
+- **File:** `gui.py`, `gui_data_analysis.py`, `gui_trading.py`, `gui_integrations.py`
+- **Description:** The `TradingBotApp` class was very large and handled all aspects of the GUI.
+- **Resolution:** The `TradingBotApp` class was refactored into smaller, more focused components, improving code readability and maintainability.
 
-## Medium-Severity Issues
-
-### 1. **No Error Handling for IB TWS Connection**
-- **Severity:** Medium
-- **File:** `trading.py`, line 19
-- **Description:** The `start_trading_bot` function attempts to connect to Interactive Brokers TWS without any error handling. If TWS is not running or the connection fails for any other reason, the application will crash.
-- **Suggested Solution:** Wrap the `ib.connect()` call in a `try...except` block to gracefully handle connection errors and provide feedback to the user.
-
-### 2. **Multiple Trading Threads Can Be Started**
-- **Severity:** Medium
-- **File:** `gui.py`, line 133
-- **Description:** The "Start Trading" button can be clicked multiple times, which will start multiple trading threads for the same ticker. This can lead to unexpected behavior and conflicting orders.
-- **Suggested Solution:** Disable the "Start Trading" button after it has been clicked and re-enable it only after trading has stopped.
-
-### 3. **Unused `self_improve_model` Function**
-- **Severity:** Medium
-- **File:** `trading.py`, line 51
-- **Description:** The `self_improve_model` function is defined but is never called anywhere in the application. This represents unfinished or dead code.
-- **Suggested Solution:** Either implement a feature that uses this function (e.g., a button in the GUI to trigger model retraining) or remove the function if it is not intended to be used.
-
-## Low-Severity Issues
-
-### 1. **Blocking GUI Calls**
-- **Severity:** Low
-- **File:** `gui.py`
-- **Description:** The use of `simpledialog` and `messagebox` can block the main GUI thread. For a simple application, this is acceptable, but it can lead to a non-responsive UI during these operations.
-- **Suggested Solution:** For a more advanced implementation, custom non-blocking dialogs could be created. For now, this is a low-priority issue.
-
-### 2. **Monolithic GUI Class**
-- **Severity:** Low
-- **File:** `gui.py`
-- **Description:** The `TradingBotApp` class is very large and handles all aspects of the GUI. This makes the code harder to read and maintain.
-- **Suggested Solution:** Refactor the `TradingBotApp` class by breaking it down into smaller, more focused components. For example, the Webull, TradingView, and backtesting sections could each be their own classes.
+All identified issues have been addressed.
