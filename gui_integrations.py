@@ -120,11 +120,12 @@ class IntegrationsFrame(ttk.LabelFrame):
 
     def open_tradingview_chart(self):
         ticker = self.parent.trading_frame.ticker_entry.get().strip().upper()
+        interval = self.parent.trading_frame.time_period_var.get()
         if not ticker:
             showerror(self, "Error", "Please enter a ticker in the trading frame.")
             return
         try:
-            self.tv_session.open_chart(ticker)
+            self.tv_session.open_chart(ticker, interval)
         except Exception as e:
             showerror(self, "Error", f"Failed to open chart: {e}")
 

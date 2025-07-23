@@ -20,6 +20,7 @@ class TradingFrame(ttk.LabelFrame):
         ttk.Label(self, text="Enter Ticker:").grid(column=0, row=0, sticky="w")
         self.ticker_entry = ttk.Entry(self)
         self.ticker_entry.grid(column=1, row=0, sticky="ew")
+        self.ticker_entry.bind("<Return>", self.update_chart_symbol)
         self.columnconfigure(1, weight=1)
 
         ttk.Label(self, text="Watchlist (comma separated):").grid(column=0, row=1, sticky="w")
@@ -35,6 +36,15 @@ class TradingFrame(ttk.LabelFrame):
         self.stop_button.grid(column=1, row=2, sticky="ew")
         self.calendar_button = ttk.Button(self, text="Open Calendar", command=self.open_calendar)
         self.calendar_button.grid(column=2, row=2, sticky="ew")
+
+        ttk.Label(self, text="Time Period:").grid(column=0, row=3, sticky="w")
+        self.time_period_var = tk.StringVar()
+        self.time_period_combo = ttk.Combobox(self, textvariable=self.time_period_var,
+                                              values=["1", "5", "15", "30", "60", "D", "W", "M"])
+        self.time_period_combo.grid(column=1, row=3, sticky="ew")
+        self.time_period_combo.set("D") # Default to daily
+        self.time_period_combo.bind("<<ComboboxSelected>>", self.update_chart_symbol)
+
 
     def start_trading(self):
         if self.trading_active:
@@ -83,3 +93,11 @@ class TradingFrame(ttk.LabelFrame):
         save_watchlist(self.parent.watchlist)
         showinfo(self, "Watchlist", "Watchlist updated")
         send_discord_message(f"Watchlist updated: {', '.join(self.parent.watchlist)}")
+
+    def update_chart_symbol(self, event=None):
+        ticker = self.ticker_entry.get().strip().upper()
+        interval = self.time_period_var.get()
+        if not ticker or not self.ticker_pattern.match(ticker):
+            showerror(self, "Error", "Please enter a valid ticker")
+            return
+        self.parent.integrations_frame.tv_session.change_symbol(ticker, interval)

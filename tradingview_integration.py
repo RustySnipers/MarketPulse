@@ -1,6 +1,7 @@
 import requests
 import webview
 from credential_store import delete_password, get_password, save_password
+from utils.formatting import format_symbol_for_tradingview
 
 SERVICE_USER = "tradingview_user"
 SERVICE_PASS = "tradingview_pass"
@@ -34,11 +35,19 @@ class TradingViewSession:
             save_password(SERVICE_USER, username, username)
             save_password(SERVICE_PASS, username, password)
 
-    def open_chart(self, symbol: str) -> None:
+    def open_chart(self, symbol: str, interval: str = "D") -> None:
         """Open a TradingView chart for the given symbol."""
-        url = f"https://www.tradingview.com/chart/?symbol={symbol.upper()}"
-        webview.create_window(f"TradingView Chart - {symbol.upper()}", url)
+        formatted_symbol = format_symbol_for_tradingview(symbol)
+        url = f"https://www.tradingview.com/chart/?symbol={formatted_symbol}&interval={interval}"
+        self.window = webview.create_window(f"TradingView Chart - {symbol.upper()}", url)
         webview.start()
+
+    def change_symbol(self, symbol: str, interval: str = "D") -> None:
+        """Change the symbol on the current TradingView chart."""
+        if self.window:
+            formatted_symbol = format_symbol_for_tradingview(symbol)
+            url = f"https://www.tradingview.com/chart/?symbol={formatted_symbol}&interval={interval}"
+            self.window.load_url(url)
 
 
 def clear_saved_tradingview(username: str) -> None:
