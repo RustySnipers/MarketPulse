@@ -2,7 +2,8 @@ import requests
 import webview
 from credential_store import delete_password, get_password, save_password
 
-SERVICE = "tradingview"
+SERVICE_USER = "tradingview_user"
+SERVICE_PASS = "tradingview_pass"
 
 
 class TradingViewSession:
@@ -14,7 +15,7 @@ class TradingViewSession:
     def login(self, username: str, password: str | None, save: bool = False) -> None:
         """Attempt to authenticate to TradingView."""
         if password is None:
-            password = get_password(SERVICE, username)
+            password = get_password(SERVICE_PASS, username)
             if password is None:
                 raise ValueError("Password required for TradingView login")
         headers = {
@@ -30,7 +31,8 @@ class TradingViewSession:
         if resp.status_code != 200 or "error" in resp.text:
             raise Exception("TradingView login failed")
         if save:
-            save_password(SERVICE, username, password)
+            save_password(SERVICE_USER, username, username)
+            save_password(SERVICE_PASS, username, password)
 
     def open_chart(self, symbol: str) -> None:
         """Open a TradingView chart for the given symbol."""
@@ -41,5 +43,6 @@ class TradingViewSession:
 
 def clear_saved_tradingview(username: str) -> None:
     """Remove stored TradingView credentials."""
-    delete_password(SERVICE, username)
+    delete_password(SERVICE_USER, username)
+    delete_password(SERVICE_PASS, username)
 

@@ -1,93 +1,103 @@
 import datetime
 import os
-
-import backtrader as bt  # backtrader provides the strategy engine
+import backtrader as bt
+import joblib
 from discord_webhook import send_discord_message
 from settings import load_settings
-from utils.ml_utils import load_data, train_random_forest
+from utils.ml_utils import load_data
 
-
-# Load and preprocess historical data
-def perform_backtest(data):
-    """Train a model on the provided data and return results."""
-    results = train_random_forest(data)
-    print(f"Model Accuracy: {results['accuracy']:.2f}")  # Debug print
-    return results
-
-
-def generate_report(data, results):
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_filename = f"reports/backtesting_report_{timestamp}.md"
-    optimal_settings = {
-        "MACD": "12, 26, 9",  # Example values
-        "RSI": "14",
-        "Bollinger Bands": "20, 2",
-    }
-    trading_plan = (
-        "1. Enter a long position when the MACD line crosses above the signal line and RSI is below 30.\n"
-        "2. Enter a short position when the MACD line crosses below the signal line and RSI is above 70.\n"
-        "3. Use Bollinger Bands to set stop-loss and take-profit levels.\n"
-        "4. Monitor trades and adjust positions based on market conditions."
-    )
+def generate_report(cerebro, data, report_filename):
+    """Generates a performance report from backtesting results."""
+    portfolio = cerebro.broker.getvalue()
     returns = data["Close"].pct_change().dropna()
-    sharpe = (returns.mean() / returns.std()) * (252 ** 0.5)
+    sharpe = (returns.mean() / returns.std()) * (252 ** 0.5) if returns.std() != 0 else 0
     downside = returns[returns < 0]
-    sortino = (returns.mean() / downside.std()) * (252 ** 0.5) if not downside.empty else 0
+    sortino = (returns.mean() / downside.std()) * (252 ** 0.5) if not downside.empty and downside.std() != 0 else 0
     running_max = data["Close"].cummax()
     drawdown = (data["Close"] - running_max) / running_max
     max_drawdown = drawdown.min()
-    total_return = (data["Close"].iloc[-1] / data["Close"].iloc[0]) - 1
+    total_return = (portfolio / cerebro.broker.startingcash) - 1
 
     report_content = f"""# Backtesting Report
 
-**Accuracy:** {results['accuracy']:.2f}
-
 **Total Return:** {total_return:.2%}
 
-| Metric | Value |
-|-------|-------|
-| Sharpe Ratio | {sharpe:.2f} |
-| Sortino Ratio | {sortino:.2f} |
-| Max Drawdown | {max_drawdown:.2%} |
+| Metric        | Value      |
+|---------------|------------|
+| Sharpe Ratio  | {sharpe:.2f}   |
+| Sortino Ratio | {sortino:.2f}  |
+| Max Drawdown  | {max_drawdown:.2%} |
+| Final Portfolio Value | ${portfolio:,.2f} |
 
-## Optimal Settings
-
-- MACD: {optimal_settings['MACD']}
-- RSI: {optimal_settings['RSI']}
-- Bollinger Bands: {optimal_settings['Bollinger Bands']}
-
-## Trading Plan
-
-{trading_plan}
 """
-
     os.makedirs("reports", exist_ok=True)
     with open(report_filename, "w", encoding="utf-8") as f:
         f.write(report_content)
-    print(f"Backtesting completed. Report generated in {report_filename}")
-
+    print(f"Backtesting report generated at {report_filename}")
 
 class MLStrategy(bt.Strategy):
-    def __init__(self, model, features):
-        self.model = model
-        self.features = features
+    params = dict(
+        model=None,
+        features=None
+    )
+
+    def __init__(self):
+        if not self.p.model or not self.p.features:
+            raise ValueError("Model and features must be provided to the strategy.")
+        self.dataclose = self.datas[0].close
 
     def next(self):
-        features = [self.data.get(name)[0] for name in self.features]
-        prediction = self.model.predict([features])[0]
-        if prediction == 1:
-            self.buy()
-        elif prediction == 0:
-            self.sell()
+        # Create a DataFrame for the current row
+        current_data = {
+            'Open': self.datas[0].open[0],
+            'High': self.datas[0].high[0],
+            'Low': self.datas[0].low[0],
+            'Close': self.datas[0].close[0],
+            'Volume': self.datas[0].volume[0]
+        }
+        df = pd.DataFrame([current_data])
+        df = add_all_ta_features(df, open="Open", high="High", low="Low", close="Close", volume="Volume")
+        df["hour"] = self.datas[0].datetime.datetime(0).hour
 
+        if all(f in df.columns for f in self.p.features):
+            prediction = self.p.model.predict(df[self.p.features])[0]
+            if prediction == 1 and not self.position:
+                self.buy()
+            elif prediction == 0 and self.position:
+                self.sell()
 
 def run_backtest():
     settings = load_settings()
     file_path = settings.get("data_file", "data/SPY2324.csv")
+
+    try:
+        model = joblib.load("models/model.pkl")
+    except FileNotFoundError:
+        print("Model file not found. Please train the model first.")
+        send_discord_message("Backtesting failed: Model not found.")
+        return
+
     data = load_data(file_path)
-    results = perform_backtest(data)
-    generate_report(data, results)
-    print("Backtesting completed. Report generated.")
-    send_discord_message(
-        f"Backtesting completed with accuracy {results['accuracy']:.2f}"
-    )
+
+    # Ensure data is in a backtrader-friendly format
+    data_feed = bt.feeds.PandasData(dataname=data)
+
+    cerebro = bt.Cerebro()
+    cerebro.adddata(data_feed)
+
+    features = ["trend_macd", "momentum_rsi", "volatility_bbm", "volatility_bbh", "volatility_bbl", "hour"]
+    cerebro.addstrategy(MLStrategy, model=model, features=features)
+
+    cerebro.broker.setcash(100000.0)
+    cerebro.addsizer(bt.sizers.FixedSize, stake=100)
+    cerebro.broker.setcommission(commission=0.001)
+
+    print("Starting backtest...")
+    cerebro.run()
+    print("Backtest finished.")
+
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    report_filename = f"reports/backtesting_report_{timestamp}.md"
+    generate_report(cerebro, data, report_filename)
+
+    send_discord_message(f"Backtesting completed. Report generated.")

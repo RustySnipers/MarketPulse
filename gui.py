@@ -238,13 +238,21 @@ class TradingBotApp:
             port_box.insert(tk.END, self.portfolio_box.get(i))
 
     def clear_credential(self, service: str):
-        if service == 'webull' and self.settings.get('webull_user'):
-            clear_saved_webull(self.settings['webull_user'])
+        username = self.settings.get(f'{service}_user')
+        if not username:
+            messagebox.showinfo("Info", f"No {service.capitalize()} credentials to clear.")
+            return
+
+        if service == 'webull':
+            clear_saved_webull(username)
             self.settings['webull_user'] = ''
-        elif service == 'tradingview' and self.settings.get('tradingview_user'):
-            clear_saved_tradingview(self.settings['tradingview_user'])
+        elif service == 'tradingview':
+            clear_saved_tradingview(username)
             self.settings['tradingview_user'] = ''
+
         save_settings(self.settings)
+        messagebox.showinfo("Credentials", f"{service.capitalize()} credentials cleared.")
+
 
     def set_watchlist(self):
         tickers = [t.strip().upper() for t in self.watchlist_entry.get().split(',') if t.strip()]
