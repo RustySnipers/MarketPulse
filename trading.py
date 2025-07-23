@@ -10,7 +10,7 @@ ticks_df = pd.DataFrame(columns=["Open", "High", "Low", "Close", "Volume"])
 ticks_df.index.name = "date"
 
 
-def start_trading_bot(ticker: str):
+def start_trading_bot(ticker: str, pnl_callback=None, stop_loss=None, take_profit=None):
     """Basic live trading loop using a pre-trained model."""
     global ticks_df
     ticks_df = pd.DataFrame(columns=["Open", "High", "Low", "Close", "Volume"])
@@ -25,6 +25,7 @@ def start_trading_bot(ticker: str):
 
     model = joblib.load("models/model.pkl")
 
+    positions = []
     def on_tick(tick):
         global ticks_df
         try:
@@ -57,9 +58,23 @@ def start_trading_bot(ticker: str):
                     last_row = df_ta.iloc[[-1]]
                     pred = model.predict(last_row[features])[0]
                     if pred == 1:
-                        ib.placeOrder(contract, MarketOrder("BUY", 1))
-                    elif pred == 0:
+                        if take_profit and stop_loss:
+                            order = ib.bracketOrder("BUY", 1, limitPrice=take_profit, stopPrice=stop_loss)
+                            for o in order:
+                                ib.placeOrder(contract, o)
+                        else:
+                            order = ib.placeOrder(contract, MarketOrder("BUY", 1))
+                        positions.append(order.contract.symbol)
+                    elif pred == 0 and positions:
                         ib.placeOrder(contract, MarketOrder("SELL", 1))
+                        positions.pop()
+
+            if pnl_callback:
+                pnl = 0
+                for trade in ib.trades():
+                    pnl += trade.realizedPnl
+                pnl_callback(pnl)
+
 
         except Exception as exc:
             print(f"Trading error: {exc}")

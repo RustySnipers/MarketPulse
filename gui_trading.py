@@ -45,6 +45,18 @@ class TradingFrame(ttk.LabelFrame):
         self.time_period_combo.set("D") # Default to daily
         self.time_period_combo.bind("<<ComboboxSelected>>", self.update_chart_symbol)
 
+        ttk.Label(self, text="P/L:").grid(column=0, row=4, sticky="w")
+        self.pnl_label = ttk.Label(self, text="$0.00")
+        self.pnl_label.grid(column=1, row=4, sticky="ew")
+
+        ttk.Label(self, text="Stop Loss:").grid(column=0, row=5, sticky="w")
+        self.stop_loss_entry = ttk.Entry(self)
+        self.stop_loss_entry.grid(column=1, row=5, sticky="ew")
+
+        ttk.Label(self, text="Take Profit:").grid(column=0, row=6, sticky="w")
+        self.take_profit_entry = ttk.Entry(self)
+        self.take_profit_entry.grid(column=1, row=6, sticky="ew")
+
 
     def start_trading(self):
         if self.trading_active:
@@ -56,8 +68,14 @@ class TradingFrame(ttk.LabelFrame):
             showerror(self, "Error", "Please enter a ticker")
             return
 
+        stop_loss_str = self.stop_loss_entry.get()
+        take_profit_str = self.take_profit_entry.get()
+
+        stop_loss = float(stop_loss_str) if stop_loss_str else None
+        take_profit = float(take_profit_str) if take_profit_str else None
+
         def trading():
-            start_trading_bot(ticker)
+            start_trading_bot(ticker, pnl_callback=self.update_pnl, stop_loss=stop_loss, take_profit=take_profit)
             self.parent.after(0, self.stop_trading)
 
         self.trading_active = True
@@ -101,3 +119,6 @@ class TradingFrame(ttk.LabelFrame):
             showerror(self, "Error", "Please enter a valid ticker")
             return
         self.parent.integrations_frame.tv_session.change_symbol(ticker, interval)
+
+    def update_pnl(self, pnl):
+        self.pnl_label.config(text=f"${pnl:.2f}")

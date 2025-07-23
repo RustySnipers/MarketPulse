@@ -5,6 +5,8 @@ from watchlist import load_watchlist
 from gui_data_analysis import DataAnalysisFrame
 from gui_trading import TradingFrame
 from gui_integrations import IntegrationsFrame
+from gui_performance import PerformanceFrame
+from gui_strategy import StrategyFrame
 
 class TradingBotApp:
     def __init__(self, root):
@@ -24,17 +26,26 @@ class TradingBotApp:
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
 
-        self.data_analysis_frame = DataAnalysisFrame(main)
-        self.data_analysis_frame.grid(column=0, row=0, padx=5, pady=5, sticky="ew")
+        notebook = ttk.Notebook(main)
+        notebook.pack(expand=True, fill="both")
 
-        self.trading_frame = TradingFrame(main)
-        self.trading_frame.grid(column=0, row=1, padx=5, pady=5, sticky="ew")
+        self.data_analysis_frame = DataAnalysisFrame(notebook)
+        notebook.add(self.data_analysis_frame, text="Data & Analysis")
 
-        self.integrations_frame = IntegrationsFrame(main)
-        self.integrations_frame.grid(column=0, row=2, padx=5, pady=5, sticky="ew")
+        self.trading_frame = TradingFrame(notebook)
+        notebook.add(self.trading_frame, text="Trading")
+
+        self.integrations_frame = IntegrationsFrame(notebook)
+        notebook.add(self.integrations_frame, text="Integrations")
+
+        self.performance_frame = PerformanceFrame(notebook)
+        notebook.add(self.performance_frame, text="Performance")
+
+        self.strategy_frame = StrategyFrame(notebook)
+        notebook.add(self.strategy_frame, text="Strategy")
 
         self.report_label = ttk.Label(main, text="")
-        self.report_label.grid(column=0, row=3, sticky="ew")
+        self.report_label.pack(side="bottom", fill="x")
 
 if __name__ == "__main__":
     root = tk.Tk()
