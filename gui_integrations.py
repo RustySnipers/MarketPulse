@@ -5,6 +5,7 @@ from webull_integration import login_webull, fetch_portfolio, clear_saved_webull
 from discord_webhook import send_discord_message
 from settings import save_settings
 from dialogs import askstring, askyesno, showinfo, showerror
+from indicator_dialog import open_indicators_dialog
 
 class IntegrationsFrame(ttk.LabelFrame):
     def __init__(self, parent):
@@ -29,6 +30,12 @@ class IntegrationsFrame(ttk.LabelFrame):
         self.tv_login_button.grid(column=1, row=1, sticky="ew")
         self.tv_chart_button = ttk.Button(self, text="Open TradingView Chart", command=self.open_tradingview_chart)
         self.tv_chart_button.grid(column=1, row=2, sticky="ew")
+
+        self.indicators_button = ttk.Button(self, text="Indicators", command=self.open_indicators_dialog)
+        self.indicators_button.grid(column=0, row=3, columnspan=2, sticky="ew")
+
+    def open_indicators_dialog(self):
+        open_indicators_dialog(self.master, self.tv_session)
 
     def open_settings(self):
         top = tk.Toplevel(self.master)

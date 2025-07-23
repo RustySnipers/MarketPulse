@@ -49,6 +49,18 @@ class TradingViewSession:
             url = f"https://www.tradingview.com/chart/?symbol={formatted_symbol}&interval={interval}"
             self.window.load_url(url)
 
+    def add_indicator(self, indicator_name: str):
+        if self.window:
+            self.window.evaluate_js(f"tvWidget.activeChart().createStudy('{indicator_name}', false, false);")
+
+    def remove_indicator(self, entity_id: str):
+        if self.window:
+            self.window.evaluate_js(f"tvWidget.activeChart().removeEntity('{entity_id}');")
+
+    def get_indicators(self):
+        if self.window:
+            return self.window.evaluate_js("tvWidget.activeChart().getAllStudies();")
+
 
 def clear_saved_tradingview(username: str) -> None:
     """Remove stored TradingView credentials."""
