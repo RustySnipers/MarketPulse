@@ -50,11 +50,13 @@ class TradingBotApp:
         self.backtest_button.grid(column=0, row=0, sticky="ew")
         self.ml_training_button = ttk.Button(data_frame, text="Start ML Training", command=self.start_ml_training)
         self.ml_training_button.grid(column=1, row=0, sticky="ew")
-        data_frame.columnconfigure((0,1), weight=1)
+        self.improve_model_button = ttk.Button(data_frame, text="Improve Model", command=self.improve_model)
+        self.improve_model_button.grid(column=2, row=0, sticky="ew")
+        data_frame.columnconfigure((0,1,2), weight=1)
         self.progress = ttk.Progressbar(data_frame, mode="indeterminate")
-        self.progress.grid(column=0, row=1, columnspan=2, sticky="ew")
+        self.progress.grid(column=0, row=1, columnspan=3, sticky="ew")
         self.progress_label = ttk.Label(data_frame, text="")
-        self.progress_label.grid(column=0, row=2, columnspan=2, sticky="ew")
+        self.progress_label.grid(column=0, row=2, columnspan=3, sticky="ew")
 
         # Ticker Input
         ttk.Label(trade_frame, text="Enter Ticker:").grid(column=0, row=0, sticky="w")
@@ -92,7 +94,7 @@ class TradingBotApp:
         # Control Bot Section
         self.start_button = ttk.Button(trade_frame, text="Start Trading", command=self.start_trading)
         self.start_button.grid(column=0, row=2, sticky="ew")
-        self.stop_button = ttk.Button(trade_frame, text="Stop Trading", command=self.stop_trading)
+        self.stop_button = ttk.Button(trade_frame, text="Stop Trading", command=self.stop_trading, state="disabled")
         self.stop_button.grid(column=1, row=2, sticky="ew")
         self.calendar_button = ttk.Button(trade_frame, text="Open Calendar", command=self.open_calendar)
         self.calendar_button.grid(column=2, row=2, sticky="ew")
@@ -100,7 +102,7 @@ class TradingBotApp:
         # Report Section
         self.report_label = ttk.Label(main, text="")
         self.report_label.grid(column=0, row=3, sticky="ew")
-    
+
     def perform_backtest(self):
         def backtest():
             self.root.after(0, self.progress.start)
@@ -127,7 +129,33 @@ class TradingBotApp:
         self.ml_training_button.config(state="disabled")
         threading.Thread(target=training, daemon=True).start()
 
+    def improve_model(self):
+        from trading import self_improve_model
+        from utils.ml_utils import load_data
+
+        def improve():
+            self.root.after(0, self.progress.start)
+            self.root.after(0, lambda: self.progress_label.config(text="Improving model..."))
+
+            # Load the data used for the last backtest/training
+            settings = load_settings()
+            file_path = settings.get("data_file", "data/SPY2324.csv")
+            new_data = load_data(file_path)
+
+            self_improve_model(new_data)
+
+            self.root.after(0, self.progress.stop)
+            self.root.after(0, lambda: self.progress_label.config(text="Model improvement complete."))
+            self.root.after(0, lambda: self.improve_model_button.config(state="normal"))
+
+        self.improve_model_button.config(state="disabled")
+        threading.Thread(target=improve, daemon=True).start()
+
     def start_trading(self):
+        if self.trading_active:
+            messagebox.showerror("Error", "Trading is already active.")
+            return
+
         ticker = self.ticker_entry.get().strip().upper()
         if not ticker or not self.ticker_pattern.match(ticker):
             messagebox.showerror("Error", "Please enter a ticker")
@@ -135,17 +163,22 @@ class TradingBotApp:
 
         def trading():
             start_trading_bot(ticker)
-            while self.trading_active:
-                time.sleep(1)
-        
+            self.root.after(0, self.stop_trading)
+
         self.trading_active = True
+        self.start_button.config(state="disabled")
+        self.stop_button.config(state="normal")
         threading.Thread(target=trading, daemon=True).start()
         messagebox.showinfo("Info", "Trading started")
         send_discord_message(f"Trading started for {ticker}")
 
     def stop_trading(self):
+        if not self.trading_active:
+            return
         self.trading_active = False
         stop_trading_bot()
+        self.start_button.config(state="normal")
+        self.stop_button.config(state="disabled")
         messagebox.showinfo("Info", "Trading stopped")
         send_discord_message("Trading stopped")
 
@@ -296,4 +329,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = TradingBotApp(root)
     root.mainloop()
-

@@ -2,33 +2,57 @@
 
 This document outlines identified bugs, unfinished features, and areas for improvement in the Market Pulse application. Issues are categorized by severity to guide development efforts.
 
-## Critical Issues
+## Completed Issues
 
 ### 1. **Fatal Error in Live Trading Due to Mismatched ML Model Features**
 - **Severity:** Critical
-- **File:** `trading.py`, line 35
-- **Description:** The live trading `on_tick` function creates a pandas DataFrame with features `["Open", "High", "Low", "Close", "Volume", "hour"]`. However, the machine learning model (`models/model.pkl`) was trained on a different set of features (e.g., `trend_macd`, `momentum_rsi`). This mismatch will cause the application to crash with a `ValueError` as soon as the model attempts to make a prediction.
-- **Suggested Solution:** The `on_tick` function needs to be updated to calculate the same features that the model was trained on. This will likely involve using a library like `ta` to calculate technical indicators from the incoming tick data.
+- **Status:** **Fixed**
+- **File:** `trading.py`
+- **Description:** The live trading `on_tick` function was creating a pandas DataFrame with features that did not match what the machine learning model was trained on.
+- **Resolution:** The `on_tick` function was updated to calculate the correct technical analysis features before making predictions.
 
-## High-Severity Issues
-
-### 1. **Backtesting Module Not Implemented**
+### 2. **Backtesting Module Not Implemented**
 - **Severity:** High
+- **Status:** **Fixed**
 - **File:** `backtesting.py`
-- **Description:** The `run_backtest` function does not perform a proper backtest. It trains a new model on the entire historical dataset and then calculates performance metrics on that same data, which is a form of data leakage. The `MLStrategy` class, which appears intended for use with the `backtrader` library, is never actually used.
-- **Suggested Solution:** Refactor `run_backtest` to use `backtrader` with the `MLStrategy`. The function should take a pre-trained model and a dataset for backtesting (ideally, a hold-out set not used during training).
-
-### 2. **Inefficient Per-Tick DataFrame Creation**
-- **Severity:** High
-- **File:** `trading.py`, line 28
-- **Description:** The `on_tick` function in the live trading module creates a new pandas DataFrame for every single market tick. This is extremely inefficient and will lead to high memory usage and poor performance, especially in active markets.
-- **Suggested Solution:** Instead of creating a new DataFrame on each tick, append the new tick data to an existing DataFrame and keep a rolling window of data. This will be much more performant.
+- **Description:** The backtesting module was not performing a proper backtest and was instead retraining the model on the test data.
+- **Resolution:** The `run_backtest` function was refactored to use the `backtrader` library with a pre-trained model to simulate a realistic backtest.
 
 ### 3. **Unsafe Credential Storage**
 - **Severity:** High
-- **File:** `gui.py`, line 192
-- **Description:** Usernames for Webull and TradingView are stored in the main settings file in plain text. While passwords are saved to the system keychain, storing usernames in an unencrypted file is a security risk.
-- **Suggested Solution:** Store usernames in the system keychain along with the passwords.
+- **Status:** **Fixed**
+- **File:** `gui.py`, `webull_integration.py`, `tradingview_integration.py`
+- **Description:** Usernames were being stored in plain text in the settings file.
+- **Resolution:** The application now stores usernames in the system keychain, alongside passwords, for improved security.
+
+### 4. **Inefficient Per-Tick DataFrame Creation**
+- **Severity:** High
+- **Status:** **Fixed**
+- **File:** `trading.py`
+- **Description:** The live trading module was creating a new pandas DataFrame for every market tick, leading to high memory usage.
+- **Resolution:** The trading module now maintains a rolling window of tick data, which is much more memory-efficient.
+
+## High-Severity Issues
+
+### 1. **No Error Handling for IB TWS Connection**
+- **Severity:** Medium
+- **File:** `trading.py`, line 19
+- **Description:** The `start_trading_bot` function attempts to connect to Interactive Brokers TWS without any error handling. If TWS is not running or the connection fails for any other reason, the application will crash.
+- **Suggested Solution:** Wrap the `ib.connect()` call in a `try...except` block to gracefully handle connection errors and provide feedback to the user.
+
+## Medium-Severity Issues
+
+### 1. **Multiple Trading Threads Can Be Started**
+- **Severity:** Medium
+- **File:** `gui.py`, line 133
+- **Description:** The "Start Trading" button can be clicked multiple times, which will start multiple trading threads for the same ticker. This can lead to unexpected behavior and conflicting orders.
+- **Suggested Solution:** Disable the "Start Trading" button after it has been clicked and re-enable it only after trading has stopped.
+
+### 2. **Unused `self_improve_model` Function**
+- **Severity:** Medium
+- **File:** `trading.py`, line 51
+- **Description:** The `self_improve_model` function is defined but is never called anywhere in the application. This represents unfinished or dead code.
+- **Suggested Solution:** Either implement a feature that uses this function (e.g., a button in the GUI to trigger model retraining) or remove the function if it is not intended to be used.
 
 ## Medium-Severity Issues
 
